@@ -5,3 +5,8 @@
 *.fig
 *.pdf
 *.key
+*.sublime-workspace
+*.gz
+*.log
+*.aux
+*.out

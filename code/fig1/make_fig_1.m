@@ -72,59 +72,12 @@ ax(1).Position(4) = .075;
 ax(2).Position(4) = .075;
 
 
-if exist('fig1.voronoi','file')
-	load('fig1.voronoi','-mat')
 
 
-else
-
-
-	v = voronoiSegment;
-	v.data = data;
-
-	v.n_seed = 4;
-	v.sim_func = @measureFiringRate;
-	v.y_range = y_range;
-	v.x_range = x_range;
-	v.n_classes = 4;
-	v.make_plot = true;
-	v.labels = {'Silent','<35Hz','35-45Hz','>45Hz'};
-	v.max_fun_eval = 300;
-
-	v.find(corelib.logrange(x_range,30),corelib.logrange(y_range,30))
-	v.findBoundaries()
-	pause(3)
-	delete(v.handles.fig)
-
-	save('fig1.voronoi','v')
-
-
-end
-
-
-v.plotBoundaries(ax(3))
-axis(ax(3),'square')
-xlabel(ax(3),'Area (mm^2)')
-ylabel(ax(3),'\Sigma g (uS)')
-
-
-ax(3).XLim = x_range; 
-ax(3).YLim = y_range;
-ax(3).XTick = [1e-3 1e-2 1e-1];
-
-% draw an arrow on it
-axes(ax(3))
-plot(ax(3),x_range,y_range,'k:')
-
-
-h = plotlib.arrow([data.A0/10 data.g0_HH/10],[data.A0*2 data.g0_HH/10],'r2',3,3,2);
-
-
-
-% measure calcium everywhere in a grid
+% measure calcium and firing rate everywhere in a grid
 
 if exist('Ca_grid.mat','file')
-	load('Ca_grid.mat','A','g','Ca')
+	load('Ca_grid.mat','A','g','Ca','firing_rate')
 else
 
 	gridsize = 100;
@@ -164,6 +117,7 @@ else
 	p.sim_func = @measureCalcium;
 	parameters_to_vary = {'AB.A','AB.NaV.gbar','AB.CaS.gbar','AB.Kd.gbar'};
 	p.batchify([all_A(:) all_gbar_NaV(:) all_gbar_CaS(:) all_gbar_Kd(:)]',parameters_to_vary);
+
 	p.simulate;
 	p.wait()
 
@@ -175,21 +129,93 @@ else
 	g = sim_data{4};
 	g = sum(g([1:2 4],:));
 
-	save('Ca_grid.mat','A','g','Ca')
+	save('Ca_grid.mat','A','g','Ca','firing_rate')
 
 end
+
+
+scatter(ax(3),A,g,63,firing_rate,'filled','Marker','s')
+set(ax(3),'YScale','log','XScale','log')
+ch = colorbar(ax(3));
+
+
+axes(ax(3))
+c = parula;
+c = brighten(c,.5);
+c(1,:) = 1;
+colormap(c)
+caxis([30 50])
+plot(ax(3),x_range,y_range,'k:')
+axis(ax(3),'square')
+
+
+set(ch,'YTick',30:5:50,'YTickLabel',{'Silent','35','40','45','50'})
+title(ch,'Firing rate (Hz)')
+
+xlabel(ax(3),'Area (mm^2)')
+ylabel(ax(3),'\Sigma g (uS)')
+
+
+
+
+% if exist('fig1.voronoi','file')
+% 	load('fig1.voronoi','-mat')
+
+
+% else
+
+
+% 	v = voronoiSegment;
+% 	v.data = data;
+
+% 	v.n_seed = 4;
+% 	v.sim_func = @measureFiringRate;
+% 	v.y_range = y_range;
+% 	v.x_range = x_range;
+% 	v.n_classes = 4;
+% 	v.make_plot = true;
+% 	v.labels = {'Silent','<35Hz','35-45Hz','>45Hz'};
+% 	v.max_fun_eval = 300;
+
+% 	v.find(corelib.logrange(x_range,30),corelib.logrange(y_range,30))
+% 	v.findBoundaries()
+% 	pause(3)
+% 	delete(v.handles.fig)
+
+% 	save('fig1.voronoi','v')
+
+
+% end
+
+
+% v.plotBoundaries(ax(3))
+% axis(ax(3),'square')
+% xlabel(ax(3),'Area (mm^2)')
+% ylabel(ax(3),'\Sigma g (uS)')
+
+
+ax(3).XLim = x_range; 
+ax(3).YLim = y_range;
+ax(3).XTick = [1e-3 1e-2 1e-1];
+
+
+% draw an arrow on it
+xx = linspace(data.A0/10,data.A0*2,1e3);
+yy = (data.g0_HH/10)*(1+0*xx);
+plotlib.trajectory(ax(3),xx,yy,'n_arrows',3,'ArrowLength',.03,'norm_y',false,'norm_x',false,'LineWidth',1.5);
+
+
 
 for show_here = 5:6
 	scatter(ax(show_here),A,g,63,log2(Ca./data.Ca_average),'filled','Marker','s')
 	set(ax(show_here),'YScale','log','XScale','log')
 	ch = colorbar(ax(show_here));
-	axes(ax(show_here))
-	colormap(colormaps.redblue)
-	caxis([-6 6])
-	plot(ax(show_here),x_range,y_range,'k:')
-	axis(ax(show_here),'square')
+	colormap(ax(show_here),colormaps.redblue);
+	caxis(ax(show_here),[-6 6])
+	plot(ax(show_here),x_range,y_range,'k:');
+	axis(ax(show_here),'square');
 
-	set(ch,'YTick',[-6:3:6],'YTickLabel',{'1/64','1/8', 'Target','8X','64X'})
+	set(ch,'YTick',[-6:3:6],'YTickLabel',{'1/64','1/8', 'Target','8X','64X'});
 	title(ch,'<[Ca^{2+}]>')
 
 	xlabel(ax(show_here),'Area (mm^2)')
@@ -214,7 +240,6 @@ ax_cartoon.Position = [.2 .56 .62 .652];
 ax(1).Position(3) = .2;
 ax(2).Position(3) = .2;
 ax(2).Position(1) = .66;
-
 
 
 % show that the diagonal is globally attractive 
