@@ -39,6 +39,12 @@ set(ax.spiking_V,'XLim',[0 1])
 
 x.plotgbars(ax.spiking_g,'AB')
 
+for i = 1:length(x.handles.gbar_plot)
+	% make stem plots solid
+	x.handles.gbar_plot(i).MarkerFaceColor = x.handles.gbar_plot(i).Color;
+	x.handles.gbar_plot(i).LineWidth = 1;
+end
+
 model_hash = hashlib.md5hash(x.get('*gbar'));
 
 % measure Calcium level set
@@ -283,7 +289,7 @@ scatter(show_here,xx,yy,63,C,'filled','Marker','s')
 set(show_here,'XScale','log','YScale','log')
 axis((show_here),'square');
 
-
+plot(ax.bursting_f,x_range,y_range,'k:','LineWidth',2);
 
 
 % show calcium

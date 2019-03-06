@@ -138,6 +138,7 @@ scatter(ax(3),A,g,63,firing_rate,'filled','Marker','s')
 set(ax(3),'YScale','log','XScale','log')
 ch = colorbar(ax(3));
 
+ch_f = ch;
 
 axes(ax(3))
 c = parula;
@@ -150,53 +151,10 @@ axis(ax(3),'square')
 
 
 set(ch,'YTick',30:5:50,'YTickLabel',{'Silent','35','40','45','50'})
-title(ch,'Firing rate (Hz)')
+title(ch,'f (Hz)')
 
 xlabel(ax(3),'Area (mm^2)')
 ylabel(ax(3),'\Sigma g (uS)')
-
-
-
-
-% if exist('fig1.voronoi','file')
-% 	load('fig1.voronoi','-mat')
-
-
-% else
-
-
-% 	v = voronoiSegment;
-% 	v.data = data;
-
-% 	v.n_seed = 4;
-% 	v.sim_func = @measureFiringRate;
-% 	v.y_range = y_range;
-% 	v.x_range = x_range;
-% 	v.n_classes = 4;
-% 	v.make_plot = true;
-% 	v.labels = {'Silent','<35Hz','35-45Hz','>45Hz'};
-% 	v.max_fun_eval = 300;
-
-% 	v.find(corelib.logrange(x_range,30),corelib.logrange(y_range,30))
-% 	v.findBoundaries()
-% 	pause(3)
-% 	delete(v.handles.fig)
-
-% 	save('fig1.voronoi','v')
-
-
-% end
-
-
-% v.plotBoundaries(ax(3))
-% axis(ax(3),'square')
-% xlabel(ax(3),'Area (mm^2)')
-% ylabel(ax(3),'\Sigma g (uS)')
-
-
-ax(3).XLim = x_range; 
-ax(3).YLim = y_range;
-ax(3).XTick = [1e-3 1e-2 1e-1];
 
 
 % draw an arrow on it
@@ -220,6 +178,10 @@ for show_here = 5:6
 
 	xlabel(ax(show_here),'Area (mm^2)')
 	ylabel(ax(show_here),'\Sigma g (uS)')
+
+	if show_here == 5
+		ch_Ca = ch;
+	end
 
 
 end
@@ -317,3 +279,25 @@ g = results.AB.NaV.IntegralController(:,2) + results.AB.Kd.IntegralController(:,
 g = g.*results.AB.ExpGrowth;
 
 [lh, arrows] = plotlib.trajectory(ax(6),results.AB.ExpGrowth,g,'n_arrows',3,'LineWidth',2);
+
+
+ch_f.Position = [.44 .4 .01 .1];
+
+for i = [3 5 6]
+	ax(i).XLim = [x_range(1)*.8 x_range(2)*1.2];
+	ax(i).YLim = [y_range(1)*.8 y_range(2)*1.2];
+	ax(i).XTick = [1e-3 1e-2 1e-1];
+
+end
+
+ax(3).Position = [.13 .41 .27 .23];
+ax(5).Position = [.13 .1 .27 .23];
+
+ch_Ca.Position = [.44 .1 .01 .1];
+ax(6).Position = [.6 .1 .27 .23];
+
+axlib.label(ax_cartoon,'a','x_offset',-.1,'y_offset',-.3);
+axlib.label(ax(3),'b','x_offset',-.01,'y_offset',-.01);
+axlib.label(ax(4),'c','x_offset',-.01,'y_offset',-.01);
+axlib.label(ax(5),'d','x_offset',-.01,'y_offset',-.01);
+axlib.label(ax(6),'e','x_offset',-.01,'y_offset',-.01)
