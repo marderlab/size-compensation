@@ -1,16 +1,17 @@
-% makes the 2D perturbation diagram
-% with integral control
-% 
-function status = analyzeWithControl(x)
+% densely sample the 2D space
+% without any integral control
+% using a log-distributed grid
+
+function status = denseSampleWithoutControl(x)
 
 status = 1;
 
 
 gbar = x.get('*gbar');
-save_name = GetMD5(gbar);
+save_name = hashlib.md5hash(gbar);
 
 
-if exist([save_name '_1.voronoi'],'file')
+if exist([save_name '_dense.voronoi'],'file')
 	disp('Already done, skipping...')
 	status = 0;
 	return
@@ -25,7 +26,7 @@ save([save_name '.start'],'status')
 disp('==========================================')
 
 % turn off all integral controllers
-singleCompartment.configureControllers(x);
+singleCompartment.disableControllers(x);
 
 % measure metrics of base
 clear data
@@ -48,12 +49,14 @@ x0 = (x.AB.CaS.gbar + x.AB.CaT.gbar);
 y0 = sum(gbar) - x0;
 
 v = singleCompartment.perturb.configureVoronoiSegment(data, x0, y0);
-v.max_fun_eval = 400;
 
-x0 = logspace(-.9,0,10)*x0;
-y0 = logspace(-.9,0,10)*y0;
-singleCompartment.perturb.segmentAndSave(v, x0, y0, [save_name '_1.voronoi']);
 
+% make a grid of points to start from
+[X,Y] = meshgrid(logspace(log10(v.x_range(1)),log10(v.x_range(2)),50), logspace(log10(v.y_range(1)),log10(v.y_range(2)),50));
+X = X(:);
+Y = Y(:);
+
+singleCompartment.perturb.segmentAndSave(v, X, Y, [save_name '_dense.voronoi']);
 
 % clean up the start file
 delete([save_name '.start'])

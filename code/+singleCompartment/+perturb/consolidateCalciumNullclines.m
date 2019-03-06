@@ -7,7 +7,7 @@
 function alldata = consolidateCalciumNullclines(allfiles)
 
 
-h = GetMD5([allfiles.name]);
+h = hashlib.md5hash([allfiles.name]);
 
 % check if hashed dump exists
 if exist([allfiles(1).folder filesep  h '_consolidated.calcium_nullclines'],'file') == 2

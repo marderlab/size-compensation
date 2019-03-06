@@ -1,19 +1,16 @@
 % makes the 2D perturbation diagram
-% without any integral control
+% with integral control
 % 
-function status = analyzeWithoutControl(x)
+function status = analyzeWithControl(x)
 
 status = 1;
 
 
-x.t_end = 20e3;
-x.dt = .1;
-
 gbar = x.get('*gbar');
-save_name = GetMD5(gbar);
+save_name = hashlib.md5hash(gbar);
 
 
-if exist([save_name '_0.voronoi'],'file')
+if exist([save_name '_1.voronoi'],'file')
 	disp('Already done, skipping...')
 	status = 0;
 	return
@@ -28,7 +25,7 @@ save([save_name '.start'],'status')
 disp('==========================================')
 
 % turn off all integral controllers
-singleCompartment.disableControllers(x);
+singleCompartment.configureControllers(x);
 
 % measure metrics of base
 clear data
@@ -51,11 +48,11 @@ x0 = (x.AB.CaS.gbar + x.AB.CaT.gbar);
 y0 = sum(gbar) - x0;
 
 v = singleCompartment.perturb.configureVoronoiSegment(data, x0, y0);
-
+v.max_fun_eval = 400;
 
 x0 = logspace(-.9,0,10)*x0;
 y0 = logspace(-.9,0,10)*y0;
-singleCompartment.perturb.segmentAndSave(v, x0, y0, [save_name '_0.voronoi']);
+singleCompartment.perturb.segmentAndSave(v, x0, y0, [save_name '_1.voronoi']);
 
 
 % clean up the start file

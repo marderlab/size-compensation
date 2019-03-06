@@ -11,8 +11,10 @@ x.t_end = 20e3;
 x.dt = .1;
 
 gbar = x.get('*gbar');
-save_name = GetMD5(gbar);
+save_name = hashlib.md5hash(gbar);
 
+
+disp(['Saving using: ' save_name])
 
 if exist([save_name '_calcium.voronoi'],'file')
 	disp('Already done, skipping...')
@@ -50,8 +52,8 @@ x.integrate;
 data.Ca_target = x.AB.Ca_average;
 
 % informational
-disp(['Burst period is: ' oval(data.metrics_base.burst_period)])
-disp(['Duty cycle is: ' oval(data.metrics_base.duty_cycle_mean)])
+disp(['Burst period is: ' strlib.oval(data.metrics_base.burst_period)])
+disp(['Duty cycle is: ' strlib.oval(data.metrics_base.duty_cycle_mean)])
 
 % the two axes we are varying things in 
 % are sigma_g_ca and sigma_g_others
@@ -70,8 +72,8 @@ v.labels = {'Above','Below'};
 v.max_fun_eval = 200;
 
 
-x0 = logspace(-.9,0,10)*x0;
-y0 = logspace(-.9,0,10)*y0;
+x0 = logspace(-.9,.4,10)*x0;
+y0 = logspace(-.9,.4,10)*y0;
 
 singleCompartment.perturb.segmentAndSave(v, x0, y0, [save_name '_calcium.voronoi']);
 

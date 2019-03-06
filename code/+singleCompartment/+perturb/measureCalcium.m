@@ -39,7 +39,7 @@ else
 end
 
 
-disp(['Ca here = ' oval(x.AB.Ca_average)])
+disp(['Ca here = ' strlib.oval(x.AB.Ca_average)])
 
 if x.AB.Ca_average > data.Ca_target
 	R = 1;

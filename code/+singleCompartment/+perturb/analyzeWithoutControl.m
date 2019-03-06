@@ -1,17 +1,20 @@
-% densely sample the 2D space
+% makes the 2D perturbation diagram
 % without any integral control
-% using a log-distributed grid
-
-function status = denseSampleWithoutControl(x)
+% 
+function status = analyzeWithoutControl(x)
 
 status = 1;
 
 
+x.t_end = 20e3;
+x.dt = .1;
+
 gbar = x.get('*gbar');
-save_name = GetMD5(gbar);
+save_name = hashlib.md5hash(gbar);
 
+disp(['Saving using: ' save_name])
 
-if exist([save_name '_dense.voronoi'],'file')
+if exist([save_name '_0.voronoi'],'file')
 	disp('Already done, skipping...')
 	status = 0;
 	return
@@ -35,8 +38,8 @@ data.x = x;
 data.g0 = gbar;
 
 % informational
-disp(['Burst period is: ' oval(data.metrics_base.burst_period)])
-disp(['Duty cycle is: ' oval(data.metrics_base.duty_cycle_mean)])
+disp(['Burst period is: ' strlib.oval(data.metrics_base.burst_period)])
+disp(['Duty cycle is: ' strlib.oval(data.metrics_base.duty_cycle_mean)])
 
 % the two axes we are varying things in 
 % are sigma_g_ca and sigma_g_others
@@ -51,12 +54,10 @@ y0 = sum(gbar) - x0;
 v = singleCompartment.perturb.configureVoronoiSegment(data, x0, y0);
 
 
-% make a grid of points to start from
-[X,Y] = meshgrid(logspace(log10(v.x_range(1)),log10(v.x_range(2)),50), logspace(log10(v.y_range(1)),log10(v.y_range(2)),50));
-X = X(:);
-Y = Y(:);
+x0 = logspace(-.9,0,10)*x0;
+y0 = logspace(-.9,0,10)*y0;
+singleCompartment.perturb.segmentAndSave(v, x0, y0, [save_name '_0.voronoi']);
 
-singleCompartment.perturb.segmentAndSave(v, X, Y, [save_name '_dense.voronoi']);
 
 % clean up the start file
 delete([save_name '.start'])

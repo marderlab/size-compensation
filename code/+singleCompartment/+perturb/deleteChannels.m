@@ -7,7 +7,7 @@
 function status = deleteChannels(x)
 
 gbar = x.get('*gbar');
-save_name = GetMD5(gbar);
+save_name = hashlib.md5hash(gbar);
 
 status = 1;
 
