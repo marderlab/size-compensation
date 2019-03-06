@@ -157,6 +157,10 @@ for i = 1:N
 end
 
 
+% plot final points
+xx = sum(v.results.gbar(:,[2 3]),2);
+yy = sum(v.results.gbar(:,[1 4 5 6 8]),2);
+plot(ax.flow,xx,yy,'k+')
 
 
 xlabel(ax.noreg,'$\Sigma \bar{g}_{Ca} (\mu S/mm^2)$','interpreter','latex')
