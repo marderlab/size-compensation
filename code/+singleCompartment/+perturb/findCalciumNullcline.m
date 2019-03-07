@@ -2,16 +2,22 @@
 % or where the average Calcium activity is
 % the same as in the reference model 
 
-function status = findCalciumNullcline(x)
+function status = findCalciumNullcline(x, gbar_x, gbar_y)
 
 status = 1;
+
+if nargin == 1
+	gbar_x = [2 3];
+	gbar_y = [1 4 5 6 8];
+end
 
 
 x.t_end = 20e3;
 x.dt = .1;
 
 gbar = x.get('*gbar');
-save_name = hashlib.md5hash(gbar);
+save_name = hashlib.md5hash([gbar(:); gbar_x(:); gbar_y(:)]);
+
 
 
 disp(['Saving using: ' save_name])
@@ -46,6 +52,8 @@ end
 
 data.x = x;
 data.g0 = gbar;
+data.gbar_x = gbar_x;
+data.gbar_y = gbar_y;
 
 % measure baseline calcium
 x.integrate;
@@ -56,14 +64,11 @@ disp(['Burst period is: ' strlib.oval(data.metrics_base.burst_period)])
 disp(['Duty cycle is: ' strlib.oval(data.metrics_base.duty_cycle_mean)])
 
 % the two axes we are varying things in 
-% are sigma_g_ca and sigma_g_others
-% x is the sum of all the calcium channels
-% and y is the sum of all the other channels
-
+% are determined by gbar_x and gbar_y
 
 % configure voronoiSegment 
-x0 = (x.AB.CaS.gbar + x.AB.CaT.gbar);
-y0 = sum(gbar) - x0;
+x0 = sum(data.g0(gbar_x));
+y0 = sum(data.g0(gbar_y));
 
 v = singleCompartment.perturb.configureVoronoiSegment(data, x0, y0);
 v.sim_func = @singleCompartment.perturb.measureCalcium;
@@ -71,7 +76,7 @@ v.n_classes = 2;
 v.labels = {'Above','Below'};
 v.max_fun_eval = 200;
 
-
+% seed
 x0 = logspace(-.9,.4,10)*x0;
 y0 = logspace(-.9,.4,10)*y0;
 

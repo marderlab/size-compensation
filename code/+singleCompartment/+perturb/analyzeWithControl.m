@@ -1,13 +1,13 @@
 % makes the 2D perturbation diagram
 % with integral control
 % 
-function status = analyzeWithControl(x)
+function status = analyzeWithControl(x, gbar_x, gbar_y)
 
 status = 1;
 
 
 gbar = x.get('*gbar');
-save_name = hashlib.md5hash(gbar);
+save_name = hashlib.md5hash([gbar(:); gbar_x(:); gbar_y(:)]);
 
 
 if exist([save_name '_1.voronoi'],'file')
@@ -32,20 +32,21 @@ clear data
 data.metrics_base = singleCompartment.measureBaselineMetrics(x);
 data.x = x;
 data.g0 = gbar;
+data.gbar_x = gbar_x;
+data.gbar_y = gbar_y;
 
 % informational
-disp(['Burst period is: ' oval(data.metrics_base.burst_period)])
-disp(['Duty cycle is: ' oval(data.metrics_base.duty_cycle_mean)])
+disp(['Burst period is: ' strlib.oval(data.metrics_base.burst_period)])
+disp(['Duty cycle is: ' strlib.oval(data.metrics_base.duty_cycle_mean)])
 
 % the two axes we are varying things in 
-% are sigma_g_ca and sigma_g_others
-% x is the sum of all the calcium channels
-% and y is the sum of all the other channels
+% are determined by gbar_x and gbar_y
 
 
 % configure voronoiSegment 
-x0 = (x.AB.CaS.gbar + x.AB.CaT.gbar);
-y0 = sum(gbar) - x0;
+
+x0 = sum(data.g0(gbar_x));
+y0 = sum(data.g0(gbar_y));
 
 v = singleCompartment.perturb.configureVoronoiSegment(data, x0, y0);
 v.max_fun_eval = 400;

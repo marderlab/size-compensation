@@ -2,7 +2,7 @@
 % but returns a label based on wheter the calcium
 % is above or below the reference calcium 
 
-function [R, results] =  measureCalcium(sigma_Ca, sigma_others, data)
+function [R, results] =  measureCalcium(X, Y, data)
 
 R = 0;
 
@@ -11,12 +11,11 @@ x.reset('base');
 g0 = data.g0;
 g = data.g0;
 
-% scale calcium channels
-g0(2:3) = g0(2:3)/sum(g0(2:3));
-g0([1 4 5 6 8]) = g0([1 4 5 6 8])/sum(g0([1 4 5 6 8]));
-g(2:3) = g0(2:3)*sigma_Ca;
-g([1 4 5 6 8]) = g0([1 4 5 6 8])*sigma_others;
-x.set('*gbar',g);
+
+
+% scale the channels based on where we are in the 2D space
+g = singleCompartment.perturb.scaleG(g0,X,Y, data.gbar_x, data.gbar_y);
+x.set('*gbar',g)
 
 
 if isinf(min(x.get('*Controller.tau_m')))

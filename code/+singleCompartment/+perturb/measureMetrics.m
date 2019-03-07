@@ -5,7 +5,7 @@
 % if integral controllers are configured, the model
 % is allowed to reach steady state first. 
 
-function varargout =  measureMetrics(sigma_Ca, sigma_others, data)
+function varargout =  measureMetrics(X, Y, data)
 
 	R = 1;
 
@@ -14,11 +14,8 @@ function varargout =  measureMetrics(sigma_Ca, sigma_others, data)
 	g0 = data.g0;
 	g = data.g0;
 
-	% scale calcium channels
-	g0(2:3) = g0(2:3)/sum(g0(2:3));
-	g0([1 4 5 6 8]) = g0([1 4 5 6 8])/sum(g0([1 4 5 6 8]));
-	g(2:3) = g0(2:3)*sigma_Ca;
-	g([1 4 5 6 8]) = g0([1 4 5 6 8])*sigma_others;
+	% scale the channels based on where we are in the 2D space
+	g = singleCompartment.perturb.scaleG(g0,X,Y, data.gbar_x, data.gbar_y);
 	x.set('*gbar',g);
 
 
@@ -73,8 +70,8 @@ function varargout =  measureMetrics(sigma_Ca, sigma_others, data)
 		metrics = xtools.V2metrics(V,'sampling_rate',10);
 
 		% informational
-		disp(['Burst period is: ' oval(metrics.burst_period)])
-		disp(['Duty cycle is: ' oval(metrics.duty_cycle_mean)])
+		disp(['Burst period is: ' strlib.oval(metrics.burst_period)])
+		disp(['Duty cycle is: ' strlib.oval(metrics.duty_cycle_mean)])
 
 
 		metrics.Ca_error = abs(x.AB.Ca_average/x.AB.Ca_target - 1);

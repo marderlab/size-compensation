@@ -1,7 +1,7 @@
 % makes the 2D perturbation diagram
 % without any integral control
 % 
-function status = analyzeWithoutControl(x)
+function status = analyzeWithoutControl(x, gbar_x, gbar_y)
 
 status = 1;
 
@@ -36,6 +36,9 @@ clear data
 data.metrics_base = singleCompartment.measureBaselineMetrics(x);
 data.x = x;
 data.g0 = gbar;
+data.gbar_x = gbar_x;
+data.gbar_y = gbar_y;
+
 
 % informational
 disp(['Burst period is: ' strlib.oval(data.metrics_base.burst_period)])
@@ -48,8 +51,8 @@ disp(['Duty cycle is: ' strlib.oval(data.metrics_base.duty_cycle_mean)])
 
 
 % configure voronoiSegment 
-x0 = (x.AB.CaS.gbar + x.AB.CaT.gbar);
-y0 = sum(gbar) - x0;
+x0 = sum(data.g0(gbar_x));
+y0 = sum(data.g0(gbar_y));
 
 v = singleCompartment.perturb.configureVoronoiSegment(data, x0, y0);
 
