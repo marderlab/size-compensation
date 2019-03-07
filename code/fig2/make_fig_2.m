@@ -125,6 +125,9 @@ c(1,:) = 1;
 colormap(show_here,c);
 caxis(show_here,[-.5 2])
 
+% show where the reference model is
+plot(show_here,x0,y0,'p','MarkerSize',12,'MarkerFaceColor','k','MarkerEdgeColor','k')
+
 ch.spiking_f = colorbar(show_here);
 set(ch.spiking_f,'YTick',[-.5 log([25 50 100]/25)],'YTickLabel',{'Silent','25', '50','100'});
 title(ch.spiking_f,'f (Hz)')
@@ -291,6 +294,9 @@ axis((show_here),'square');
 
 plot(ax.bursting_f,x_range,y_range,'k:','LineWidth',2);
 
+% show where the reference model is
+plot(ax.bursting_f,x0,y0,'p','MarkerSize',12,'MarkerFaceColor','k','MarkerEdgeColor','k')
+
 
 % show calcium
 show_here = ax.bursting_Ca; hold on
@@ -400,3 +406,17 @@ th = title(fake_colorbar(2),'Peak voltage');
 th.Position = [20 10 0];
 th = title(fake_colorbar(3),'Firing rate');
 th.Position = [20 10 0];
+
+
+I = imread('cartoon.png');
+figlib.showImageInAxes(ax.cartoon,I)
+
+axlib.label(ax.cartoon,'a');
+
+axlib.label(ax.spiking_g,'b','x_offset',-.02);
+axlib.label(ax.spiking_f,'c','x_offset',-.02,'y_offset',-.04);
+axlib.label(ax.spiking_Ca,'d','x_offset',-.02,'y_offset',-.04);
+
+axlib.label(ax.bursting_g,'e','x_offset',-.02);
+axlib.label(ax.bursting_f,'f','x_offset',-.02,'y_offset',-.04);
+axlib.label(ax.bursting_Ca,'g','x_offset',-.02,'y_offset',-.04);

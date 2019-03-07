@@ -300,4 +300,4 @@ axlib.label(ax_cartoon,'a','x_offset',-.1,'y_offset',-.3);
 axlib.label(ax(3),'b','x_offset',-.01,'y_offset',-.01);
 axlib.label(ax(4),'c','x_offset',-.01,'y_offset',-.01);
 axlib.label(ax(5),'d','x_offset',-.01,'y_offset',-.01);
-axlib.label(ax(6),'e','x_offset',-.01,'y_offset',-.01)
+axlib.label(ax(6),'e','x_offset',-.01,'y_offset',-.01);

@@ -63,11 +63,6 @@ set(ax.noreg,'XScale','log','YScale','log','XLim',v.x_range,'YLim',v.y_range)
 
 
 
-
-
-
-
-
 % plot the integral control solutioon
 
 load([model_hash '_1.voronoi'],'-mat')
@@ -181,3 +176,5 @@ title(ax.noreg,'Without regulation')
 title(ax.flow,'With regulation')
 
 figlib.label('y_offset',-.04,'font_size',34,'x_offset',-.03)
+
+
