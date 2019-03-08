@@ -23,8 +23,6 @@ ax.flow = subplot(1,2,2); hold on
 v.findBoundaries(ax.noreg)
 p = ax.noreg.Children;
 uistack(p(2),'top')
-xlabel(ax.noreg,'\Sigma g_{Ca} (uS/mm^2)')
-ylabel(ax.noreg,'\Sigma g_{others} (uS/mm^2)')
 c = lines(10);
 scatter(x0,y0,48,c(5,:),'o','filled')
 
@@ -67,7 +65,7 @@ set(ax.noreg,'XScale','log','YScale','log','XLim',v.x_range,'YLim',v.y_range)
 
 load([model_hash '_1.voronoi'],'-mat')
 
-v.findBoundaries(ax.flow)
+v.plotBoundaries(ax.flow)
 set(ax.flow,'XScale','log','YScale','log')
 
 
