@@ -228,6 +228,42 @@ for i = 1:N
 	end
 end
 
+
+
+
+
+
+% now we show calcium nullclines for a whole bunch of very similar neurons
+% but with different properties in the standard projection
+
+
+
+
+
+
+allfiles = dir('./perturb-similar-bursters/*calcium.voronoi');
+alldata = singleCompartment.perturb.consolidateCalciumNullclines(allfiles);
+
+
+
+% plot guide lines
+plot(ax(3),[1/100 10],[1 1],'k')
+plot(ax(3),[1 1],[1/100 10],'k')
+plot(ax(3),[1/100 10],[1/100 10],'k:')
+
+c = lines(length(alldata));
+
+for i = 1:length(alldata)
+	plot(ax(3),alldata(i).x,alldata(i).y,'Color',[0 0 0 .1])
+end
+set(ax(3),'XScale','log','YScale','log','XLim',[1/100 10],'YLim',[1/100 10])
+xlabel(ax(3),'Fold change in g_{Ca}')
+ylabel(ax(3),'Fold change in g_{others}')
+
+
+
 figlib.tight()
 
 figlib.label('x_offset',-.01,'y_offset',-.06,'font_size',30)
+
+
