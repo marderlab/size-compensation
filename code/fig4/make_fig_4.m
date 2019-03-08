@@ -4,13 +4,13 @@ clear ax
 addpath('../')
 close all
 
-figure('outerposition',[300 300 1200 600],'PaperUnits','points','PaperSize',[1200 600]); hold on
+figure('outerposition',[300 300 1800 600],'PaperUnits','points','PaperSize',[1800 600]); hold on
 for i = 3:-1:1
 	ax(i) = subplot(1,3,i); hold on
 	axis(ax(i),'square')
 end
 
-figlib.pretty('plw',1,'lw',1,'fs',12)
+figlib.pretty('plw',1,'lw',1,'fs',16)
 
 % make a bursting neuron
 x = singleCompartment.makeNeuron();
@@ -227,3 +227,7 @@ for i = 1:N
 
 	end
 end
+
+figlib.tight()
+
+figlib.label('x_offset',-.01,'y_offset',-.06,'font_size',30)
