@@ -45,4 +45,4 @@ for i = 1:8
     I(i) = I(i)*(V-E(i));
 end
 
-Vd = abs(sum(I));
+Vd = (sum(I));

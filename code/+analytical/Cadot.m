@@ -24,5 +24,3 @@ i_CaT = g_CaT*(minf_CaT(V)^3)*(hinf_CaT(V))*(V-E_Ca);
 i_Ca = i_CaS + i_CaT;
 
 C = (-f*i_Ca*A - Ca_target + Ca_in)/tau_Ca;
-
-% C = abs(C);

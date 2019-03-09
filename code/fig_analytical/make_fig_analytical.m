@@ -57,7 +57,7 @@ end
 % show the zeros of the calcium equation
 plot(ax(1),all_g_Ca,zero_locs,'k','LineWidth',1.5)
 xlabel(ax(1),'$\Sigma \bar{g}_{Ca} (\mu S/mm^2)$','interpreter','latex')
-ylabel(ax(1),'$V\bigl|_{\dot{Ca}=0} (mV)$','interpreter','latex')
+ylabel(ax(1),'V at nullcline (mV)')
 set(ax(1),'XScale','log')
 
 % the two branches are symmetric, so we can throw one away
@@ -103,6 +103,7 @@ load(['../fig3/' model_hash '_1.voronoi'],'-mat')
 v.plotBoundaries(ax(2))
 set(ax(2),'XScale','log','YScale','log')
 c = lines(10);
+c(1:2,:) = [];
 p = ax(2).Children;
 for i = 1:length(p)
 	if i == 5
@@ -136,7 +137,7 @@ y0 = sum(g0([1 4 5 6 8]));
 x_range = [x0/100 x0*10];
 y_range = [y0/100 y0*10];
 set(ax(2),'XLim',x_range,'YLim',y_range,'XTick',[10 100 1e3])
-set(ax(1),'XLim',x_range,'XTick',[10 100 1e3],'YLim',[-50 -0])
+set(ax(1),'XLim',x_range,'XTick',[10 100 1e3],'YLim',[-60 -0])
 
 plot(ax(2),all_x,all_y,'k','LineWidth',1.5)
 xlabel(ax(2),'$\Sigma \bar{g}_{Ca} (\mu S/mm^2)$','interpreter','latex')
@@ -149,13 +150,48 @@ Ca_zero_offset =  2*nanmax(Ca_zeros.zero_locs);
 lower_branch = Ca_zeros.zero_locs;
 upper_branch = -Ca_zeros.zero_locs + Ca_zero_offset;
 
-% show the voltage and calcium dynamics along the analytical fixed point set
-
 show_at_these_y = [130 400];
 
+% now find the V at Vdot = 0 and also plot them on the first plot
+x_range = corelib.logrange(x0/100,x0*10,1e2);
+
+V_fp = NaN(length(x_range),length(show_at_these_y));
+stability = NaN(length(x_range),length(show_at_these_y));
+
+ for j = 1:length(show_at_these_y)
+ 	disp(j)
+	for i = 1:length(x_range)
+		
+		[V_fp(i,j), stability(i,j)] = analytical.findZerosInVoltageODE(g0,x_range(i),show_at_these_y(j), Ca_target);
+
+	end
+
+	plot(ax(1),x_range,V_fp(:,j),'LineWidth',1.5,'Color',c(j,:))
+end
 
 
-set(ax(3),'XScale','log','XLim',[100 200],'YLim',[-50 -0])
+% fake some legends
+clear lh L MarkerSize
+MarkerSize = 24;
+lh(1) = plot(ax(1),NaN,NaN,'k.','MarkerSize',MarkerSize);
+lh(2) = plot(ax(1),NaN,NaN,'.','Color',c(1,:),'MarkerSize',MarkerSize);
+lh(3) = plot(ax(1),NaN,NaN,'.','Color',c(2,:),'MarkerSize',MarkerSize);
+
+L  = legend(lh,{'$\dot{[Ca]} = 0$','$\dot{V} = 0, \Sigma \bar{g}_{others}=130$','$\dot{V} = 0, \Sigma \bar{g}_{others}=400$'},'Location','northwest','interpreter','latex');
+L.Box = 'off';
+
+
+
+
+
+
+% show the voltage and calcium dynamics along the analytical fixed point set
+
+
+
+
+
+set(ax(3),'XScale','log','XLim',[100 200],'YLim',[-60 -0])
 M = {'p','d'};
 
 for i = 1:length(show_at_these_y)
@@ -163,7 +199,7 @@ for i = 1:length(show_at_these_y)
 	Y = show_at_these_y(i);
 	X = interp1(all_y,all_x,Y);
 
-	plot(ax(2),X,Y,'Marker',M{i},'Color','b','MarkerSize',10,'MarkerFaceColor','b')
+	plot(ax(2),X,Y,'Marker',M{i},'Color',c(i,:),'MarkerSize',10,'MarkerFaceColor',c(i,:))
 
 
 	g = singleCompartment.perturb.scaleG(g0,X,Y);
@@ -179,9 +215,9 @@ for i = 1:length(show_at_these_y)
 	x.AB.V = interp1(all_g_Ca,upper_branch,X);
 	[V,Ca] = x.integrate;
 
-	plot(ax(3),Ca(:,1),V,'Color','k');
+	plot(ax(3),Ca(:,1),V,'Color',c(i,:));
 
-	plot(ax(3),Ca(1,1),V(1),'Marker',M{i},'Color','b','MarkerSize',10,'MarkerFaceColor','b')
+	plot(ax(3),Ca(1,1),V(1),'Marker',M{i},'Color',c(i,:),'MarkerSize',10,'MarkerFaceColor',c(i,:))
 
 end
 
@@ -252,7 +288,7 @@ xlabel(ax(4),'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
 ylabel(ax(4),'$V_m (mV)$','interpreter','latex')
 set(ax(4),'YScale','linear','XLim',[min(show_at_these_y) max(show_at_these_y)])
 
+
 set(ax(4),'XScale','log','XLim',[min(all_y),max(all_y)])
-
-
+ax(4).XTick = [100 1e3];
 figlib.label('x_offset',-.03,'y_offset',-.02,'font_size',24)

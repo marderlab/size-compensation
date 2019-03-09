@@ -30,8 +30,8 @@ for i = 1:length(all_x)
 
 		g = singleCompartment.perturb.scaleG(g0,all_x(i),all_y(j));
 
-		vdot1 = analytical.VDot(V_Ca(1),Ca_target, g);
-		vdot2 = analytical.VDot(V_Ca(2),Ca_target, g);
+		vdot1 = abs(analytical.VDot(V_Ca(1),Ca_target, g));
+		vdot2 = abs(analytical.VDot(V_Ca(2),Ca_target, g));
 
 		smallest_v_dot(i,j) = min([vdot1 vdot2]);
 
