@@ -105,14 +105,10 @@ set(ax(2),'XScale','log','YScale','log')
 c = lines(10);
 c(1:2,:) = [];
 p = ax(2).Children;
-for i = 1:length(p)
-	if i == 5
-		p(i).FaceColor = c(5,:);
-	end
-	p(i).FaceAlpha = .5;
-end
+
 
 for i = 1:12
+	p(i).FaceColor = [.5 .5 .5];
 	p(i).FaceAlpha = .15;
 end
 
