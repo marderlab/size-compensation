@@ -4,13 +4,72 @@ clear ax
 addpath('../')
 close all
 
-figure('outerposition',[300 300 1800 600],'PaperUnits','points','PaperSize',[1800 600]); hold on
-for i = 3:-1:1
-	ax(i) = subplot(1,3,i); hold on
-	axis(ax(i),'square')
+figure('outerposition',[300 300 800 600],'PaperUnits','points','PaperSize',[800 600]); hold on
+for i = 4:-1:1
+	ax(i) = subplot(2,2,i); hold on
+	
 end
 
-figlib.pretty('plw',1,'lw',1,'fs',16)
+axis(ax(1),'square')
+axis(ax(2),'square')
+axis(ax(4),'square')
+
+figlib.pretty('plw',1,'lw',1,'fs',13)
+
+
+
+% now we show calcium nullclines for a whole bunch of very similar neurons
+% but with different properties in the standard projection
+
+allfiles = dir('./perturb-similar-bursters/*calcium.voronoi');
+alldata = singleCompartment.perturb.consolidateCalciumNullclines(allfiles);
+
+
+
+% show CV of various things
+clear S
+S(1) = stem(ax(3),1,statlib.cv([alldata.nspikes]),'filled','Color','r');
+S(2) = stem(ax(3),2,statlib.cv([alldata.burst_period]),'filled','Color','r');
+S(3) = stem(ax(3),3,statlib.cv([alldata.duty_cycle]),'filled','Color','r');
+
+g0 = [alldata.g0];
+
+S(4) = stem(ax(3),4,statlib.cv(g0(3,:)),'filled','Color','k');
+S(5) = stem(ax(3),5,statlib.cv(g0(4,:)),'filled','Color','k');
+S(6) = stem(ax(3),6,statlib.cv(g0(5,:)),'filled','Color','k');
+
+S(7) = stem(ax(3),7,statlib.cv(g0(8,:)./g0(6,:)),'filled','Color','k');
+S(8) = stem(ax(3),8,statlib.cv(g0(8,:)./g0(5,:)),'filled','Color','k');
+
+ax(3).YScale = 'log';
+ax(3).YLim = [.01 1];
+ax(3).XTickLabelRotation = 45;
+ax(3).Position(4) = .22;
+ax(3).Position(2) = .15;
+ylabel(ax(3),'CV')
+set(ax(3),'XTick',[1:8],'XTickLabel',{'#spikes','burst period','duty cycle','CaT','H','KCa','NaV/Kd','NaV/KCa'})
+
+for i = 1:length(S)
+	S(i).LineWidth = 1.5;
+end
+
+
+
+% plot guide lines
+plot(ax(4),[1/100 10],[1 1],'k')
+plot(ax(4),[1 1],[1/100 10],'k')
+plot(ax(4),[1/100 10],[1/100 10],'k:')
+
+c = lines(length(alldata));
+
+for i = 1:length(alldata)
+	plot(ax(4),alldata(i).x,alldata(i).y,'Color',[0 0 0 .1])
+end
+set(ax(4),'XScale','log','YScale','log','XLim',[1/100 10],'YLim',[1/100 10])
+xlabel(ax(4),'Fold change in g_{Ca}')
+ylabel(ax(4),'Fold change in g_{others}')
+
+
 
 % make a bursting neuron
 x = singleCompartment.makeNeuron();
@@ -229,41 +288,7 @@ for i = 1:N
 end
 
 
-
-
-
-
-% now we show calcium nullclines for a whole bunch of very similar neurons
-% but with different properties in the standard projection
-
-
-
-
-
-
-allfiles = dir('./perturb-similar-bursters/*calcium.voronoi');
-alldata = singleCompartment.perturb.consolidateCalciumNullclines(allfiles);
-
-
-
-% plot guide lines
-plot(ax(3),[1/100 10],[1 1],'k')
-plot(ax(3),[1 1],[1/100 10],'k')
-plot(ax(3),[1/100 10],[1/100 10],'k:')
-
-c = lines(length(alldata));
-
-for i = 1:length(alldata)
-	plot(ax(3),alldata(i).x,alldata(i).y,'Color',[0 0 0 .1])
-end
-set(ax(3),'XScale','log','YScale','log','XLim',[1/100 10],'YLim',[1/100 10])
-xlabel(ax(3),'Fold change in g_{Ca}')
-ylabel(ax(3),'Fold change in g_{others}')
-
-
-
-figlib.tight()
-
-figlib.label('x_offset',-.01,'y_offset',-.06,'font_size',30)
-
-
+axlib.label(ax(1),'a','x_offset',-.05,'y_offset',0,'font_size',24)
+axlib.label(ax(2),'b','x_offset',-.05,'y_offset',0,'font_size',24)
+axlib.label(ax(3),'c','x_offset',-.05,'y_offset',0,'font_size',24)
+axlib.label(ax(4),'d','x_offset',-.05,'y_offset',0,'font_size',24)

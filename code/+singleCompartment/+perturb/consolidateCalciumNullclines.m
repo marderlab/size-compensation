@@ -27,11 +27,20 @@ alldata.spike_peak_std = NaN;
 alldata.x0 = NaN;
 alldata.y0 = NaN;
 
+alldata.g0 = NaN(8,1);
+alldata.duty_cycle = NaN;
+alldata.nspikes = NaN;
+alldata.burst_period = NaN;
+alldata.Ca0 = NaN;
+
 v = struct;
 
-for i = length(allfiles):-1:1
+warning('off','MATLAB:class:mustReturnObject')
 
-	disp(i)
+
+for i = 1:length(allfiles)
+
+	corelib.textbar(i,length(allfiles))
 
 	load([allfiles(i).folder filesep allfiles(i).name],'v','-mat')
 
@@ -53,8 +62,16 @@ for i = length(allfiles):-1:1
 	alldata(i).spike_peak_mean = v.data.metrics_base.spike_peak_mean;
 	alldata(i).spike_peak_std = v.data.metrics_base.spike_peak_std;
 
+	alldata(i).g0 = v.data.g0;
+	alldata(i).burst_period = v.data.metrics_base.burst_period;
+	alldata(i).duty_cycle = v.data.metrics_base.duty_cycle_mean;
+	alldata(i).nspikes = v.data.metrics_base.n_spikes_per_burst_mean;
+	alldata(i).Ca0 = v.data.Ca_target;
+
 
 end
 
 % save
 save([allfiles(1).folder filesep  h '_consolidated.calcium_nullclines'],'alldata','-v7.3')
+
+warning('on','MATLAB:class:mustReturnObject')
