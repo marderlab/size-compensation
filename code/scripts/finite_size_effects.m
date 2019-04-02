@@ -41,11 +41,55 @@ x.approx_channels = 0;
 x.t_end = 1e4;
 x.dt = .1;
 
+
+
+if exist('bursting_isis_stochastic.mat','file') == 2
+	load('bursting_isis_stochastic.mat')
+
+else
+
+	all_sizes = logspace(-6,-1,3e4);
+
+	p = xgrid;
+	p.cleanup;
+	p.x = x;
+	p.sim_func = @xgrid.measureMetrics;
+
+	parameters_to_vary = {'AB.A','AB.vol'};
+	p.batchify([all_sizes(:), all_sizes(:)]',parameters_to_vary);
+
+	p.simulate;
+	p.wait;
+
+	data = p.gather;
+
+	areas = data{5};
+
+	isis = data{3};
+
+	save('bursting_isis_stochastic.mat','isis','areas')
+end
+
+
+
+
+X = repmat(areas,1e3,1);
+X = (X(:));
+Y = (isis(:));
+
+s = scatter(X,Y,'MarkerFaceAlpha',.1);
+
+
+
+return
+
+
+
 if exist('stochastic_channels_changing_size.mat','file') == 2
 	load('stochastic_channels_changing_size.mat')
 else
 	N = 5;
-	all_sizes = logspace(-6,-1,30);
+	all_sizes = space(-6,-1,30);
 	all_f = NaN(length(all_sizes),N);
 	all_Ca = NaN(length(all_sizes),N);
 
