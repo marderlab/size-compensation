@@ -92,10 +92,14 @@ x_range = [min(A) max(A)];
 y_range = [min(g) max(g)];
 
 
-figure('outerposition',[300 300 1200 901],'PaperUnits','points','PaperSize',[1200 901]); hold on
+figure('outerposition',[300 300 1403 901],'PaperUnits','points','PaperSize',[1403 901]); hold on
+
 clear ax
-ax = subplot(2,2,1); hold on
-plot_this = log10(1e3*isis(1,:));
+
+
+% firing rate
+ax = subplot(2,3,1); hold on
+plot_this = (firing_rate(1,:));
 scatter(ax,A,g,63,plot_this,'filled','Marker','s')
 set(ax,'YScale','log','XScale','log')
 ch = colorbar(ax);
@@ -107,25 +111,41 @@ c = parula;
 %c = brighten(c,.5);
 colormap(c)
 caxis([min(plot_this) max(plot_this)])
-plot(ax,x_range,y_range,'k:')
-axis(ax,'square')
+
+
+title(ch,'f (Hz)')
+% ch.YTick = loc;
+% ch.YTickLabel = L;
+
+
+
+ax(2) = subplot(2,3,2); hold on
+plot_this = log10(1e3*isis(1,:));
+scatter(ax(2),A,g,63,plot_this,'filled','Marker','s')
+set(ax(2),'YScale','log','XScale','log')
+ch = colorbar(ax(2));
+
+[L,loc]=axlib.makeLogTickLabels((1e3*isis(1,:)));
+
+axes(ax(2))
+c = parula;
+%c = brighten(c,.5);
+colormap(c)
+caxis([min(plot_this) max(plot_this)])
 
 
 title(ch,'ISI (ms)')
 ch.YTick = loc;
 ch.YTickLabel = L;
 
-xlabel(ax,'Area (mm^2)')
-ylabel(ax,'\Sigma g (uS)')
 
 
 
 
-
-ax(2) = subplot(2,2,2); hold on
+ax(3) = subplot(2,3,3); hold on
 plot_this = log10(1e3*isis(2,:));
-scatter(ax(2),A,g,63,plot_this,'filled','Marker','s')
-ch = colorbar(ax(2));
+scatter(ax(3),A,g,63,plot_this,'filled','Marker','s')
+ch = colorbar(ax(3));
 
 
 [L,loc]=axlib.makeLogTickLabels((1e3*isis(2,:)));
@@ -133,11 +153,10 @@ ch = colorbar(ax(2));
 ch.YTick = loc;
 ch.YTickLabel = L;
 
-axes(ax(2))
+axes(ax(3))
 c = parula;
-colormap(ax(2),c)
+colormap(ax(3),c)
 caxis([min(plot_this) max(plot_this)])
-plot(ax(2),x_range,y_range,'k:')
 
 title(ch,'\sigma_{ISI} (ms)')
 
@@ -149,59 +168,79 @@ title(ch,'\sigma_{ISI} (ms)')
 
 
 
-ax(3) = subplot(2,2,3); hold on
-plot_this = (Ca(2,:)./Ca(1,:));
-scatter(ax(3),A,g,63,plot_this,'filled','Marker','s')
-ch = colorbar(ax(3));
-
-ch_f = ch;
-
-[L,loc]=axlib.makeLogTickLabels((1e3*Ca(2,:)));
-
-axes(ax(3))
-c = parula;
-c = brighten(c,.5);
-colormap(ax(3),c)
-caxis([0 max(plot_this)])
-
-title(ch,'CV_{Ca} ')
-
-
-
-
-% measure deviation from mean ISI
-D1 = ((isis(1,:)-isis0(1))./isis0(1)); D1(D1 < -.5) = -.5; D1(D1 > .5) = .5; 
-D2 = ((isis(2,:)-isis0(2))./isis0(2)); D2(D2 < -.5) = -.5; D2(D2 > .5) = .5; 
-
-ax(4) = subplot(2,2,4); hold on
-plot_this = D1 + D2;
+ax(4) = subplot(2,3,4); hold on
+plot_this = log2(Ca(1,:)/Ca0(1));
+plot_this(plot_this<-2) = -2;
+plot_this(plot_this>2) = 2;
 scatter(ax(4),A,g,63,plot_this,'filled','Marker','s')
-
 ch = colorbar(ax(4));
-
-ch_f = ch;
-
-[L,loc]=axlib.makeLogTickLabels((1e3*Ca(2,:)));
 
 axes(ax(4))
 c = colormaps.redblue;
 c = brighten(c,.2);
 colormap(ax(4),c)
-caxis([-1 1])
+caxis([-3 3])
+
+title(ch,'<[Ca^{2+}]> ')
 
 
 
+
+ax(5) = subplot(2,3,5); hold on
+% find lines corresponding to various things and plot those
+
+clear l
+
+% plot Calcium line
+Y = NaN*A_space;
+for i = 1:length(A_space)
+	candidates = Ca(1,(A==A_space(i)));
+	candidates_Y = g(1,(A==A_space(i)));
+	Y(i) = candidates_Y(corelib.closest(candidates,Ca0(1,:)));
+end
+
+l(1) = plot(ax(5),A_space,Y,'DisplayName','<[Ca^{2+}]> = Ca_{target}','LineWidth',2);
+
+
+% plot firing rate line
+Y = NaN*A_space;
+for i = 1:length(A_space)
+	candidates = firing_rate(1,(A==A_space(i)));
+	candidates_Y = g(1,(A==A_space(i)));
+
+	% ignore some extranouse points
+	candidates(candidates_Y > 2*ff(A_space(i))) = Inf;
+	Y(i) = candidates_Y(corelib.closest(candidates,firing_rate0(1,:)));
+end
+l(2) = plot(ax(5),A_space,Y,'DisplayName','f = f_{target}','LineWidth',2);
+
+% plot line of equi-ISI variability
+Y = NaN*A_space;
+for i = 1:length(A_space)
+	candidates = isis(2,(A==A_space(i)));
+	candidates_Y = g(1,(A==A_space(i)));
+
+	Y(i) = candidates_Y(corelib.closest(candidates,isis0(2,:)));
+end
+l(3) = plot(ax(5),A_space,Y,'DisplayName','\sigma_{ISI} = \sigma_{ISI}(target)','LineWidth',2);
+
+lh = legend;
 
 figlib.pretty('plw',1,'lw',1)
 
 
-for i = 1:4
+for i = 1:length(ax)
 	ax(i).XLim = [x_range(1)*.8 x_range(2)*1.2];
 	ax(i).YLim = [y_range(1)*.8 y_range(2)*1.2];
 	xlabel(ax(i),'Area (mm^2)')
 	ylabel(ax(i),'\Sigma g (uS)')
-	plot(ax(i),x_range,y_range,'k:')
+	plot(ax(i),x_range,y_range,'k:','DisplayName','constant channel density');
 	axis(ax(i),'square')
-	set(ax(i),'YScale','log','XScale','log')
+	set(ax(i),'YScale','log','XScale','log');
 
 end
+
+
+lh.Location = 'eastoutside';
+
+ax(5).Position(3:4) = ax(1).Position(3:4);
