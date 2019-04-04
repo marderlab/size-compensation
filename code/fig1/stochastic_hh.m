@@ -192,6 +192,8 @@ ax(5) = subplot(2,3,5); hold on
 clear l
 
 % plot Calcium line
+A_space = unique(A);
+ff = fit(x_range(:),y_range(:),'poly1');
 Y = NaN*A_space;
 for i = 1:length(A_space)
 	candidates = Ca(1,(A==A_space(i)));

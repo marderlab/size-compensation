@@ -45,7 +45,8 @@ for i = 1:length(x.handles.gbar_plot)
 	x.handles.gbar_plot(i).LineWidth = 1;
 end
 
-model_hash = hashlib.md5hash(x.get('*gbar'));
+gbar = x.get('*gbar');
+model_hash = hashlib.md5hash([gbar(:); [2 3]'; [1 4 5 6 8]']);
 
 % measure Calcium level set
 singleCompartment.perturb.findCalciumNullcline(x);
@@ -185,7 +186,9 @@ ylabel(ax.spiking_f,'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','late
 x = singleCompartment.makeNeuron();
 singleCompartment.disableControllers(x)
 x.set('*gbar',[379 165 2.35 .72 297 1713 .46 1370])
-model_hash = hashlib.md5hash(x.get('*gbar'));
+
+gbar = x.get('*gbar');
+model_hash = hashlib.md5hash([gbar(:); [2 3]'; [1 4 5 6 8]']);
 
 % measure calcium levels in base model
 x.dt = .1;
