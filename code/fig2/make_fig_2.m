@@ -17,7 +17,7 @@ ax.bursting_V = subplot(6,4,8); hold on
 ax.bursting_f = subplot(3,2,4); hold on
 ax.bursting_Ca = subplot(3,2,6); hold on
 
-figlib.pretty('plw',1,'lw',1,'fs',12)
+
 
 % make a spiking neuron
 x = singleCompartment.makeNeuron();
@@ -173,9 +173,9 @@ YLim = [min(y_range)*.8 max(y_range)*1.2];
 
 set(show_here,'XLim',XLim,'YLim',YLim,'XTick',[10 100 1e3])
 set(ax.spiking_f,'XLim',XLim,'YLim',YLim,'XTick',[10 100 1e3])
-xlabel(show_here,'$\Sigma \bar{g}_{Ca} (\mu S/mm^2)$','interpreter','latex')
-ylabel(show_here,'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
-ylabel(ax.spiking_f,'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
+xlabel(show_here,'$\mathbf{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(show_here,'$\mathbf{\Sigma \bar{g} - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.spiking_f,'$\mathbf{\Sigma \bar{g} - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
 
 
 
@@ -335,12 +335,12 @@ XLim = [min(x_range)*.8 max(x_range)*1.2];
 YLim = [min(y_range)*.8 max(y_range)*1.2];
 
 set(show_here,'XLim',XLim,'YLim',YLim,'XTick',[10 100 1e3])
-xlabel(show_here,'$\Sigma \bar{g}_{Ca} (\mu S/mm^2)$','interpreter','latex')
-ylabel(show_here,'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
+xlabel(show_here,'$\mathbf{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(show_here,'$\mathbf{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
 
 set(ax.bursting_f,'XLim',XLim,'YLim',YLim,'XTick',[10 100 1e3])
 
-ylabel(ax.bursting_f,'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
+ylabel(ax.bursting_f,'$\mathbf{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
 
 axlib.makeEphys(ax.bursting_V)
 axlib.makeEphys(ax.spiking_V,'time_scale',.5)
@@ -367,7 +367,8 @@ ax.bursting_g.YMinorTick = 'off';
 
 ax.bursting_V.Position = [.8 .73 .1 .05];
 
-ylabel(ax.bursting_g,'$\bar{g} (\mu S/mm^2)$','interpreter','latex')
+ylabel(ax.spiking_g,'$\mathbf{\bar{g} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.bursting_g,'$\mathbf{\bar{g} (\mu S/mm^2)}$','interpreter','latex')
 
 ax.spiking_Ca.Position = [.1 .05 .3 .3];
 ax.bursting_Ca.Position = [.6 .05 .3 .3];
@@ -403,16 +404,18 @@ for i = 1:3
 	fake_colorbar(i).Position = [.51 + i*.1 .64 .09 .01];
 end
 
-th = title(fake_colorbar(1),'ISI regularity');
-th.Position = [20 10 0];
-th = title(fake_colorbar(2),'Peak voltage');
-th.Position = [20 10 0];
-th = title(fake_colorbar(3),'Firing rate');
-th.Position = [20 10 0];
+th = title(fake_colorbar(1),'ISI regularity','FontSize',13);
+th.Position = [40 10 0];
+th = title(fake_colorbar(2),'Peak voltage','FontSize',13);
+th.Position = [40 10 0];
+th = title(fake_colorbar(3),'Firing rate','FontSize',13);
+th.Position = [40 10 0];
 
 
 I = imread('cartoon.png');
 figlib.showImageInAxes(ax.cartoon,I)
+
+figlib.pretty('plw',1,'lw',1,'fs',12)
 
 axlib.label(ax.cartoon,'a');
 
@@ -423,3 +426,4 @@ axlib.label(ax.spiking_Ca,'d','x_offset',-.02,'y_offset',-.04);
 axlib.label(ax.bursting_g,'e','x_offset',-.02);
 axlib.label(ax.bursting_f,'f','x_offset',-.02,'y_offset',-.04);
 axlib.label(ax.bursting_Ca,'g','x_offset',-.02,'y_offset',-.04);
+
