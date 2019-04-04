@@ -210,8 +210,8 @@ for i = 1:length(A_space)
 	candidates = firing_rate(1,(A==A_space(i)));
 	candidates_Y = g(1,(A==A_space(i)));
 
-	% ignore some extranouse points
-	candidates(candidates_Y > 2*ff(A_space(i))) = Inf;
+	% % ignore some extranouse points
+	% candidates(candidates_Y > 2*ff(A_space(i))) = Inf;
 	Y(i) = candidates_Y(corelib.closest(candidates,firing_rate0(1,:)));
 end
 l(2) = plot(ax(5),A_space,Y,'DisplayName','f = f_{target}','LineWidth',2);

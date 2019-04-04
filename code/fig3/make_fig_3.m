@@ -14,10 +14,10 @@ load([model_hash '_0.voronoi'],'-mat')
 x0 = sum(v.data.g0(2:3));
 y0 = sum(v.data.g0([1 4 5 6 8]));
 
-figure('outerposition',[300 300 1400 700],'PaperUnits','points','PaperSize',[1400 701]); hold on
-ax.noreg = subplot(1,3,1); hold on
-ax.flow = subplot(1,3,2); hold on
-ax.diff = subplot(1,3,3); hold on
+figure('outerposition',[300 300 1100 901],'PaperUnits','points','PaperSize',[1100 901]); hold on
+ax.noreg = subplot(2,2,1); hold on
+ax.flow = subplot(2,2,2); hold on
+ax.diff = subplot(2,2,3); hold on
 
 
 v.plotBoundaries(ax.noreg)
@@ -198,11 +198,14 @@ axis(ax.flow,'square')
 axis(ax.diff,'square')
 
 
-ax.diff.Position(2) = .25;
-ax.flow.Position(2) = .25;
-ax.noreg.Position(2) = .25;
 
-ax.diff.XTick = ax.flow.XTick;
+ax.flow.XTick = [10 100 1e3];
+ax.noreg.XTick = [10 100 1e3];
+ax.diff.XTick = [10 100 1e3];
+
+ax.flow.XMinorTick = 'on';
+ax.noreg.XMinorTick = 'on';
+ax.diff.XMinorTick = 'on';
 
 set(ax.flow,'XLim',[v.x_range(1),v.x_range(2)],'YLim',[v.y_range(1),v.y_range(2)])
 set(ax.noreg,'XLim',[v.x_range(1),v.x_range(2)],'YLim',[v.y_range(1),v.y_range(2)])
@@ -212,7 +215,7 @@ set(ax.diff,'XLim',[v.x_range(1),v.x_range(2)],'YLim',[v.y_range(1),v.y_range(2)
 title(ax.noreg,'Without regulation')
 title(ax.flow,'With regulation')
 
-figlib.label('y_offset',-.13,'font_size',34,'x_offset',-.02)
+figlib.label('y_offset',-.03,'font_size',26,'x_offset',-.02)
 
 % add a new axis for the text labels
 ax.txt = axes;
