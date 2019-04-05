@@ -6,7 +6,8 @@
 
 addpath('../')
 
-
+x = xolotl.examples.BurstingNeuron('prefix','prinz','CalciumMech','bucholtz');
+x.AB.add('Leak','gbar',0);
 
 if exist('stochastic_vs_deterministic_bursters.mat','file') == 2
 	load('stochastic_vs_deterministic_bursters.mat')
@@ -22,9 +23,6 @@ else
 
 	all_g = n.results.all_g(do_these,:);
 
-
-	x = xolotl.examples.BurstingNeuron('prinz');
-	x.AB.add('Leak');
 
 
 	p = xgrid;
