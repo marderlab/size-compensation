@@ -14,7 +14,7 @@ load([model_hash '_0.voronoi'],'-mat')
 x0 = sum(v.data.g0(2:3));
 y0 = sum(v.data.g0([1 4 5 6 8]));
 
-figure('outerposition',[300 300 1100 901],'PaperUnits','points','PaperSize',[1100 901]); hold on
+fig_handle= figure('outerposition',[300 300 902 901],'PaperUnits','points','PaperSize',[902 901]); hold on
 ax.noreg = subplot(2,2,1); hold on
 ax.flow = subplot(2,2,2); hold on
 ax.diff = subplot(2,2,3); hold on
@@ -112,11 +112,12 @@ RD(R0 == 3 & R == 3) = 4; % robust to perturb, comp. restores function
 
 v_diff.traceBoundaries(RD);
 
-c = prism;
-c(1:2,:) = [];
-c(3,:) = [0 0 0];
-c(4,:) = [0 0 1];
-v_diff.plotBoundaries(ax.diff,c);
+c = parula(5);
+% c(1,:) = [0    0.6706    0];
+c(2,:) = [255 174 0]/255;
+c(3,:) = [0.9569    0 0 ];
+c(4,:) = [0    0.4980   0];
+v_diff.plotBoundaries(ax.diff,c,.8);
 
 
 
@@ -183,15 +184,15 @@ yy = sum(v.results.gbar(:,[1 4 5 6 8]),2);
 plot(ax.flow,xx,yy,'k+')
 
 
-xlabel(ax.noreg,'$\Sigma \bar{g}_{Ca} (\mu S/mm^2)$','interpreter','latex')
-ylabel(ax.noreg,'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
+xlabel(ax.noreg,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.noreg,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
 
 
-xlabel(ax.diff,'$\Sigma \bar{g}_{Ca} (\mu S/mm^2)$','interpreter','latex')
-ylabel(ax.diff,'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
+xlabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
 
-xlabel(ax.flow,'$\Sigma \bar{g}_{Ca} (\mu S/mm^2)$','interpreter','latex')
-ylabel(ax.flow,'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
+xlabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
 
 axis(ax.noreg,'square')
 axis(ax.flow,'square')
@@ -217,11 +218,15 @@ title(ax.flow,'With regulation')
 
 figlib.label('y_offset',-.03,'font_size',26,'x_offset',-.02)
 
+
+
 % add a new axis for the text labels
 ax.txt = axes;
-ax.txt.Position = [ax.diff.Position(1)-.05 0 .3 .3];
+ax.txt.Position = [.46 0.1 .4 .3];
+
+
 clear th
-th(1) = text(ax.txt,0,.2,'Sensitive to perturbation, compensation restores function','Color',[.8 .8 0]);
+th(1) = text(ax.txt,0,.2,'Sensitive to perturbation, compensation restores function','Color',c(1,:));
 th(2) = text(ax.txt,0,.4,'Sensitive to perturbation, compensation pathalogical','Color',c(2,:));
 th(3) = text(ax.txt,0,.6,'Robust to perturbation, compensation pathalogical','Color',c(3,:));
 th(4) = text(ax.txt,0,.8,'Robust to perturbation, compensation restores function','Color',c(4,:));
