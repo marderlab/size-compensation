@@ -60,6 +60,38 @@ n_spikes_per_burst(:,rm_this) = [];
 firing_rate(:,rm_this) = [];
 all_g(:,rm_this) = [];
 
+
+
+
+%%
+% I'm choosing several hundred models with very similar behaviour. The following figure shows some of them. 
+
+figure('outerposition',[300 300 1200 600],'PaperUnits','points','PaperSize',[1200 600]); hold on
+
+x.t_end = 5e3;
+for i = 1:8
+	subplot(2,4,i); hold on
+	x.reset;
+	x.set('*gbar',all_g(:,i));
+	x.integrate;
+	V = x.integrate;
+	a = find(V>0,1,'first');
+	V(1:a) = [];
+	time = (1:length(V))*x.dt*1e-3;
+	plot(time,V,'k')
+	set(gca,'XLim',[0 1.8])
+	axis off
+end
+
+
+figlib.pretty('plw',1)
+
+
+
+
+
+
+
 figure('outerposition',[300 300 1200 903],'PaperUnits','points','PaperSize',[1200 903]); hold on
 subplot(2,3,1); hold on
 plot(Ca_mean(1,:),Ca_mean(2,:),'k.')

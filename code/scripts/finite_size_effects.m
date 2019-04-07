@@ -43,45 +43,43 @@ x.dt = .1;
 
 
 
-if exist('bursting_isis_stochastic.mat','file') == 2
-	load('bursting_isis_stochastic.mat')
+% if exist('bursting_isis_stochastic.mat','file') == 2
+% 	load('bursting_isis_stochastic.mat')
 
-else
+% else
 
-	all_sizes = logspace(-6,-1,3e4);
+% 	all_sizes = logspace(-6,-1,3e4);
 
-	p = xgrid;
-	p.cleanup;
-	p.x = x;
-	p.sim_func = @xgrid.measureMetrics;
+% 	p = xgrid;
+% 	p.cleanup;
+% 	p.x = x;
+% 	p.sim_func = @xgrid.measureMetrics;
 
-	parameters_to_vary = {'AB.A','AB.vol'};
-	p.batchify([all_sizes(:), all_sizes(:)]',parameters_to_vary);
+% 	parameters_to_vary = {'AB.A','AB.vol'};
+% 	p.batchify([all_sizes(:), all_sizes(:)]',parameters_to_vary);
 
-	p.simulate;
-	p.wait;
+% 	p.simulate;
+% 	p.wait;
 
-	data = p.gather;
+% 	data = p.gather;
 
-	areas = data{5};
+% 	areas = data{5};
 
-	isis = data{3};
+% 	isis = data{3};
 
-	save('bursting_isis_stochastic.mat','isis','areas')
-end
-
-
-
-
-X = repmat(areas,1e3,1);
-X = (X(:));
-Y = (isis(:));
-
-s = scatter(X,Y,'MarkerFaceAlpha',.1);
+% 	save('bursting_isis_stochastic.mat','isis','areas')
+% end
 
 
 
-return
+
+% X = repmat(areas,1e3,1);
+% X = (X(:));
+% Y = (isis(:));
+
+% s = scatter(X,Y,'MarkerFaceAlpha',.1);
+
+
 
 
 
@@ -89,7 +87,7 @@ if exist('stochastic_channels_changing_size.mat','file') == 2
 	load('stochastic_channels_changing_size.mat')
 else
 	N = 5;
-	all_sizes = space(-6,-1,30);
+	all_sizes = logspace(-6,-1,30);
 	all_f = NaN(length(all_sizes),N);
 	all_Ca = NaN(length(all_sizes),N);
 
@@ -112,19 +110,23 @@ end
 
 figure('outerposition',[300 300 1200 800],'PaperUnits','points','PaperSize',[1200 800]); hold on
 
-show_sizes = corelib.logrange(min(all_sizes),max(all_sizes),4);
-
+show_sizes = corelib.logrange(min(all_sizes)*20,max(all_sizes),4);
+clear ax
 for i = 1:4
-	ax = subplot(4,2,2*(i-1)+1); hold on
+	axv(i) = subplot(4,2,2*(i-1)+1); hold on
 	x.reset;
 	x.AB.A = show_sizes(i);
 	x.AB.vol = show_sizes(i);
+	x.integrate;
 	V = x.integrate;
 	time = (1:length(V))*1e-3*x.dt;
-	plot(time,V,'k')
-	set(gca,'YLim',[-90 50],'XLim',[8 10])
-	title(['Area = ' strlib.oval(x.AB.A) 'mm^2'])
-	axlib.makeEphys(ax,'voltage_position',-90)
+	plot(axv(i),time,V,'k')
+	set(axv(i),'YLim',[-90 50],'XLim',[0 2])
+	th = title(axv(i),['Area = ' strlib.oval(x.AB.A) 'mm^2']);
+	th.FontWeight = 'normal';
+	if i < 4
+		axis off
+	end
 end
 
 ax = subplot(2,2,2); hold on
@@ -143,6 +145,7 @@ ax.Position = [.6 .12 .25 .3];
 
 figlib.pretty('plw',1,'lw',1)
 
+axlib.makeEphys(axv,'voltage_position',-90)
 
 
 %%
