@@ -245,7 +245,7 @@ plot(all_sizes,Ca_mean./Ca_mean(idx,:),'Color',[.8 .8 .8])
 plot(all_sizes,mean(Ca_mean./Ca_mean(idx,:),2),'k','LineWidth',3)
 set(gca,'XScale','log','YScale','linear','YLim',[.1 3])
 
-
+ylabel('<[Ca]>/<[Ca]>_{baseline}')
 xlabel('Cell size (mm^2)')
 
 
