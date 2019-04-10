@@ -211,7 +211,7 @@ for i = 1:length(A_space)
 	candidates_Y = g(1,(A==A_space(i)));
 
 	% % ignore some extranouse points
-	% candidates(candidates_Y > 2*ff(A_space(i))) = Inf;
+	candidates(candidates_Y > 2*ff(A_space(i))) = Inf;
 	Y(i) = candidates_Y(corelib.closest(candidates,firing_rate0(1,:)));
 end
 l(2) = plot(ax(5),A_space,Y,'DisplayName','f = f_{target}','LineWidth',2);
@@ -239,7 +239,8 @@ for i = 1:length(ax)
 	plot(ax(i),x_range,y_range,'k:','DisplayName','constant channel density');
 	axis(ax(i),'square')
 	set(ax(i),'YScale','log','XScale','log');
-
+	ax(i).XTick = [1e-3 1e-2 1e-1 1e0];
+	ax(i).YTick = [1e0 1e1 1e2 1e3 1e4];
 end
 
 
