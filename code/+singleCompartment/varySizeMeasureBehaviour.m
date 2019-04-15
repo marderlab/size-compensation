@@ -1,4 +1,8 @@
-function [f0, Ca0, all_f, isi_mean, isi_std, Ca_mean, Ca_std, metrics0, metrics] = varySizeMeasureBehaviour(x,~,~)
+function [f0, Ca0, all_f, isi_mean, isi_std, Ca_mean, Ca_std, metrics0, metrics, all_sizes] = varySizeMeasureBehaviour(x,~,~)
+
+% turn off aprooximations
+x.approx_channels = 0;
+
 
 x.AB.A = 0.0628;
 x.AB.vol = 0.0628;
@@ -54,3 +58,5 @@ for i = 1:N
 end
 
 metrics = metrics(:);
+
+disp('DONE!')

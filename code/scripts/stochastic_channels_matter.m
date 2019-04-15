@@ -264,3 +264,182 @@ xlabel('Error in duty cycle (a.u.)')
 ylabel('Error in burst period (a.u.)')
 
 figlib.pretty()
+
+
+
+
+%%
+% What about some of these models more or less susceptible to size changes? 
+
+
+% measure correlations b/w all pairs of ratios and the error in the duty
+% cycles
+
+m_dc = abs(log(squeeze(metrics(3,1,:))./squeeze(metrics(3,20,:))));
+s_dc = abs(log(squeeze(metrics(4,1,:))./squeeze(metrics(4,20,:))));
+
+C = NaN(8,8);
+
+for i = 1:8
+	for j = 1:8
+		X = all_g(i,:)./all_g(j,:);
+		C(i,j) = statlib.correlation(X(:),E_dc,'Type','Pearson');
+	end
+end
+
+plotlib.cplot(R(:,1),R(:,2),E_dc)
+
+
+
+return
+
+%% 
+% Now we look at temperatire
+
+x = xolotl;
+x.add('compartment','AB','A',0.0628);
+
+x.AB.add('prinz/CalciumMech');
+
+x.AB.add('prinz-temperature/NaV','gbar',1000);
+x.AB.add('prinz-temperature/CaT','gbar',25);
+x.AB.add('prinz-temperature/CaS','gbar',60);
+x.AB.add('prinz-temperature/ACurrent','gbar',500);
+x.AB.add('prinz-temperature/KCa','gbar',50);
+x.AB.add('prinz-temperature/Kd','gbar',1000);
+x.AB.add('prinz-temperature/HCurrent','gbar',.1);
+
+x.set('*Q_g',1)
+x.set('*Q_tau_m',2)
+x.set('*Q_tau_h',2)
+
+
+if exist('vary_temperature_bursters.mat','file') == 2
+	load('vary_temperature_bursters.mat')
+else
+
+
+
+
+
+	p = xgrid;
+	p.cleanup;
+	p.x = x;
+	p.sim_func = @varyTemperatureMeasureBehaviour;
+	parameters_to_vary = x.find('*gbar');
+	p.batchify(all_g',parameters_to_vary);
+
+	p.simulate;
+	p.wait;
+
+	[data, all_g] = p.gather;
+
+
+	save('vary_temperature_bursters.mat','all_g','data')
+
+end
+
+
+
+
+%%
+% Now we vary the size of a very large number of bursting neurons and see which ones falter when we make them smaller. 
+
+
+x = xolotl.examples.BurstingNeuron('prefix','prinz','CalciumMech','bucholtz');
+x.AB.add('Leak','gbar',0);
+
+if exist('vary_size_in_many_bursters.mat','file') == 2
+	load('vary_size_in_many_bursters.mat')
+else
+
+
+	if ~exist('n','var')
+		 n = neuroDB; n.prefix = 'prinz/'; n.data_dump = '/code/neuron-db/prinz/';
+	end
+
+
+	do_these = (n.results.burst_period > 950 & n.results.burst_period < 1050 & n.results.duty_cycle_mean > .1 & n.results.duty_cycle_mean < .3);
+
+	all_g = n.results.all_g(do_these,:);
+
+
+	p = xgrid;
+	p.cleanup;
+	p.x = x;
+	p.sim_func = @singleCompartment.varySizeMeasureBehaviour;
+	parameters_to_vary = x.find('*gbar');
+	p.n_batches = 20;
+	p.batchify(all_g',parameters_to_vary);
+
+	p.simulate;
+	p.wait;
+
+	[data, all_g] = p.gather;
+
+
+	save('vary_size_in_many_bursters.mat','all_g','data')
+
+end
+
+
+
+f0 = data{1};
+Ca0 = data{2};
+all_f = data{3};
+isi_mean = data{4};
+isi_std = data{5};
+Ca_mean = data{6};
+Ca_std = data{7};
+metrics0 = data{8};
+metrics = data{9};
+
+metrics = reshape(metrics,20,size(metrics,1)/20,size(metrics,2));
+
+N = 20;
+all_sizes = logspace(-6,-1,N);
+
+
+
+% find neurons that stop bursting and switch to a tonically spiking behaviour
+isi_mean = squeeze(metrics(10,:,:));
+isi_std = squeeze(metrics(12,:,:));
+isi_cv = isi_std./isi_mean;
+
+burst_periods = squeeze(metrics(1,:,:));
+
+% remove neurons that aren't very bursty at the biggest size
+bad_neurons = isnan(burst_periods(20,:));
+
+changed_neurons = find(min(isi_cv) < .5 & ~bad_neurons);
+
+
+figure('outerposition',[300 300 1200 901],'PaperUnits','points','PaperSize',[1200 901]); hold on
+
+% plot fraction of neurons still bursting as a function of size
+% remove neurons that don't burst at biggest size
+
+
+
+
+rm_this = isnan(burst_periods(20,:));
+y = mean(isnan(burst_periods(:,~rm_this)),2);
+ye = std(isnan(burst_periods(:,~rm_this)),[],2)/sqrt(round(mean(~rm_this)*length(burst_periods)));
+plotlib.errorShade(all_sizes,y,ye)
+
+
+% find neurons that crap out and compare them to neurons that don't
+changed_neurons = find(isnan(burst_periods(1,:)) & ~isnan(burst_periods(20,:)));
+unchanged_neurons = find(~isnan(burst_periods(1,:)) & ~isnan(burst_periods(20,:)));
+
+
+subplot(2,3,1); hold on
+plot(all_sizes,squeeze(metrics(1,:,:)),'Color',[.8 .8 .8])
+plot(all_sizes,nanmean(squeeze(metrics(1,:,:)),2),'k','LineWidth',3)
+set(gca,'XScale','log','YLim',[0 1.5e3])
+
+e = nanstd(metrics0(1,:))/sqrt(size(metrics0,2));
+plotlib.errorShade(all_sizes,0*all_sizes + nanmean(metrics0(1,:)), 0*all_sizes + e);
+
+xlabel('Cell size (mm^2)')
+ylabel('Burst period (ms)')
