@@ -359,7 +359,7 @@ else
 	end
 
 
-	do_these = (n.results.burst_period > 950 & n.results.burst_period < 1050 & n.results.duty_cycle_mean > .1 & n.results.duty_cycle_mean < .3);
+	do_these = (n.results.burst_period > 950 & n.results.burst_period < 1050 & n.results.duty_cycle_mean > .19 & n.results.duty_cycle_mean < .21);
 
 	all_g = n.results.all_g(do_these,:);
 
@@ -367,7 +367,7 @@ else
 	p = xgrid;
 	p.cleanup;
 	p.x = x;
-	p.sim_func = @singleCompartment.varySizeMeasureBehaviour;
+	p.sim_func = @singleCompartment.twoSizesMeasureMetrics;
 	parameters_to_vary = x.find('*gbar');
 	p.n_batches = 20;
 	p.batchify(all_g',parameters_to_vary);
@@ -382,64 +382,196 @@ else
 
 end
 
+metrics0 = data{1};
+metrics_big = data{2};
+metrics_small = data{3};
 
+metrics_small = reshape(metrics_small,20,20,size(metrics_small,2));
+metrics_big = reshape(metrics_big,20,20,size(metrics_big,2));
 
-f0 = data{1};
-Ca0 = data{2};
-all_f = data{3};
-isi_mean = data{4};
-isi_std = data{5};
-Ca_mean = data{6};
-Ca_std = data{7};
-metrics0 = data{8};
-metrics = data{9};
+% exclude some bad neurons
+bad_neurons = metrics0(1,:) < 950 | metrics0(1,:) > 1050 | isnan(metrics0(1,:));
 
-metrics = reshape(metrics,20,size(metrics,1)/20,size(metrics,2));
+metrics0(:,bad_neurons) = [];
+metrics_big(:,:,bad_neurons) = [];
+metrics_small(:,:,bad_neurons) = [];
+all_g(:,bad_neurons) = [];
 
-N = 20;
-all_sizes = logspace(-6,-1,N);
-
-
-
-% find neurons that stop bursting and switch to a tonically spiking behaviour
-isi_mean = squeeze(metrics(10,:,:));
-isi_std = squeeze(metrics(12,:,:));
-isi_cv = isi_std./isi_mean;
-
-burst_periods = squeeze(metrics(1,:,:));
-
-% remove neurons that aren't very bursty at the biggest size
-bad_neurons = isnan(burst_periods(20,:));
-
-changed_neurons = find(min(isi_cv) < .5 & ~bad_neurons);
 
 
 figure('outerposition',[300 300 1200 901],'PaperUnits','points','PaperSize',[1200 901]); hold on
 
-% plot fraction of neurons still bursting as a function of size
-% remove neurons that don't burst at biggest size
+% compare determinstic and stochastic
 
+det_period_mean = metrics0(1,:);
+big_period_mean = squeeze(mean(metrics_big(1,:,:)));
+big_period_std = squeeze(std(metrics_big(1,:,:)));
 
+small_period_mean = squeeze(mean(metrics_small(1,:,:)));
+small_period_std = squeeze(std(metrics_small(1,:,:)));
 
-
-rm_this = isnan(burst_periods(20,:));
-y = mean(isnan(burst_periods(:,~rm_this)),2);
-ye = std(isnan(burst_periods(:,~rm_this)),[],2)/sqrt(round(mean(~rm_this)*length(burst_periods)));
-plotlib.errorShade(all_sizes,y,ye)
-
-
-% find neurons that crap out and compare them to neurons that don't
-changed_neurons = find(isnan(burst_periods(1,:)) & ~isnan(burst_periods(20,:)));
-unchanged_neurons = find(~isnan(burst_periods(1,:)) & ~isnan(burst_periods(20,:)));
-
+small_dc_mean = squeeze(mean(metrics_small(3,:,:)));
+big_dc_mean = squeeze(mean(metrics_big(3,:,:)));
+small_dc_std = squeeze(std(metrics_small(3,:,:)));
+big_dc_std = squeeze(std(metrics_big(3,:,:)));
 
 subplot(2,3,1); hold on
-plot(all_sizes,squeeze(metrics(1,:,:)),'Color',[.8 .8 .8])
-plot(all_sizes,nanmean(squeeze(metrics(1,:,:)),2),'k','LineWidth',3)
-set(gca,'XScale','log','YLim',[0 1.5e3])
+plot(det_period_mean,big_period_mean,'k.')
+xlabel('Deterministic')
+title('Mean burst period')
+ylabel('Large stochastic')
+plotlib.drawDiag
+set(gca,'XLim',[500 1500],'YLim',[500 1500])
+axis square
 
-e = nanstd(metrics0(1,:))/sqrt(size(metrics0,2));
-plotlib.errorShade(all_sizes,0*all_sizes + nanmean(metrics0(1,:)), 0*all_sizes + e);
 
-xlabel('Cell size (mm^2)')
-ylabel('Burst period (ms)')
+subplot(2,3,2); hold on
+plot(small_period_mean,big_period_mean,'k.')
+xlabel('Small stochastic')
+title('Mean burst period')
+ylabel('Large stochastic')
+plotlib.drawDiag;
+set(gca,'XLim',[500 1500],'YLim',[500 1500])
+axis square
+
+
+subplot(2,3,3); hold on
+plot(small_period_std./small_period_mean,big_period_std./big_period_mean,'k.')
+xlabel('Small stochastic')
+title('CV burst period')
+ylabel('Large stochastic')
+plotlib.drawDiag;
+set(gca,'XLim',[0 .2],'YLim',[0 .2])
+axis square
+
+subplot(2,3,4); hold on
+plot(metrics0(3,:),big_dc_mean,'k.')
+xlabel('Deterministic')
+title('Mean duty cycle')
+ylabel('Large stochastic')
+plotlib.drawDiag
+set(gca,'XLim',[0 .4],'YLim',[0 .4])
+axis square
+
+
+
+subplot(2,3,5); hold on
+plot(small_dc_mean,big_dc_mean,'k.')
+xlabel('Small stochastic')
+title('Mean duty cycle')
+ylabel('Large stochastic')
+plotlib.drawDiag;
+set(gca,'XLim',[0 .4],'YLim',[0 .4])
+axis square
+
+
+
+subplot(2,3,6); hold on
+plot(small_dc_std./small_dc_mean,big_dc_std./big_dc_mean,'k.')
+xlabel('Small stochastic')
+title('CV Duty cycle')
+ylabel('Large stochastic')
+plotlib.drawDiag;
+set(gca,'XLim',[0 .2],'YLim',[0 .2])
+axis square
+
+
+figlib.pretty
+
+
+%
+% Is the change in duty cycle more or less than the change in the burst period?
+
+figure('outerposition',[300 300 1200 600],'PaperUnits','points','PaperSize',[1200 600]); hold on
+
+X = abs(log(small_dc_mean./big_dc_mean));
+Y = abs(log(small_period_mean./big_period_mean));
+plot(X,Y,'k.')
+
+
+
+
+
+
+
+
+% compare neurons that are stable with size and those that are not
+% w.r.t burst period
+
+[~,idx] = sort(abs(big_period_mean - small_period_mean));
+
+temp = big_period_mean - small_period_mean;
+temp(isnan(temp)) = 0;
+[~,idx2] = sort((temp),'descend');
+
+% this one is weird
+idx2(3) = [];
+
+figure('outerposition',[300 300 1200 901],'PaperUnits','points','PaperSize',[1200 901]); hold on
+
+x.stochastic_channels = 1;
+
+for i = 1:4
+
+	subplot(4,2,(i-1)*2+1); hold on
+
+	x.set('*gbar',all_g(:,idx(i)));
+	x.reset;
+
+	x.AB.A = 1e-1;
+	x.AB.vol = 1e-1;
+
+	x.integrate;
+	V = x.integrate;
+
+
+	time = (1:length(V))*1e-3*x.dt;
+	plot(time, V,'k')
+
+
+	x.reset;
+	x.AB.A = 1e-4;
+	x.AB.vol = 1e-4;
+	x.integrate;
+	V = x.integrate;
+	plot(time, V+150,'r')
+
+	if i == 4
+		axlib.makeEphys(gca);
+	else
+		axis off
+	end
+
+
+	subplot(4,2,(i-1)*2+2); hold on
+
+	x.set('*gbar',all_g(:,idx2(i)));
+	x.reset;
+
+	x.AB.A = 1e-1;
+	x.AB.vol = 1e-1;
+
+	x.integrate;
+	V = x.integrate;
+
+
+	time = (1:length(V))*1e-3*x.dt;
+	plot(time, V,'k')
+
+
+	x.reset;
+	x.AB.A = 1e-4;
+	x.AB.vol = 1e-4;
+	x.integrate;
+	V = x.integrate;
+	plot(time, V+150,'r')
+
+	if i == 4
+		axlib.makeEphys(gca);
+	else 
+		axis off
+	end
+
+end
+
+figlib.pretty
