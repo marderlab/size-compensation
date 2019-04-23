@@ -3,7 +3,11 @@
 % assuming it is created using
 % singleCompartment.makeNeuron()
 
-function configureControllers(x)
+function configureControllers(x, tau_m0)
+
+if nargin < 2
+	tau_m0 = 5e3;
+end
 
 comp_name = x.Children;
 
@@ -13,7 +17,7 @@ comp_name = comp_name{1};
 
 gbar = x.get('*gbar');
 
-% first turn off all integral controllers
+% first turn off all controllers
 singleCompartment.disableControllers(x);
 
 
@@ -30,10 +34,10 @@ x.snapshot('base');
 x.(comp_name).Ca_target = x.(comp_name).Ca_average;
 
 
-% configure integral controllers
-tau_m = (5e3*max(gbar))./gbar;
-x.set('*IntegralController.tau_m',tau_m);
-x.set('*IntegralController.tau_g',5e3);
-x.set('*IntegralController.m',gbar*x.(comp_name).A)
-x.(comp_name).Leak.IntegralController.tau_g = Inf;
+% configure controllers
+tau_m = (tau_m0*max(gbar))./gbar;
+x.set('*Controller.tau_m',tau_m);
+x.set('*Controller.tau_g',tau_m0);
+x.set('*Controller.m',gbar*x.(comp_name).A)
+x.(comp_name).Leak.(x.(comp_name).Leak.Children{1}).tau_g = Inf;
 

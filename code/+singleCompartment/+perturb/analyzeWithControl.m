@@ -7,8 +7,9 @@ status = 1;
 
 
 gbar = x.get('*gbar');
-save_name = hashlib.md5hash([gbar(:); gbar_x(:); gbar_y(:)]);
+%save_name = hashlib.md5hash([gbar(:); gbar_x(:); gbar_y(:)]);
 
+save_name = hashlib.md5hash([x.hash hashlib.md5hash([gbar_x(:); gbar_y(:)])]);
 
 if exist([save_name '_1.voronoi'],'file')
 	disp('Already done, skipping...')
@@ -26,6 +27,8 @@ disp('==========================================')
 
 % turn off all integral controllers
 singleCompartment.configureControllers(x);
+
+
 
 % measure metrics of base
 clear data

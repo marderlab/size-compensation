@@ -9,4 +9,4 @@ x.integrate;
 x.dt = .1;
 V = x.integrate;
 x.snapshot('base');
-metrics = xtools.V2metrics(V,'sampling_rate',10);
+metrics = xtools.V2metrics(V,'sampling_rate',1/x.dt);

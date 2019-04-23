@@ -42,19 +42,19 @@ function varargout =  measureMetrics(X, Y, data)
 
 		T = 0;
 
-		x.t_end = 1e5;
+		x.t_end = 1e4;
 		x.dt = 10;
 
 		goon = true;
 		while goon
 
 
-			[~,~,C] = x.integrate;
-
-			Ca_avg = C(:,7);
-			C(:,7) = [];
-
+			x.integrate;
 			T = T + x.t_end;
+
+			Ca_avg = x.AB.Ca_average;
+
+	
 			if T > 1e6 | abs(Ca_avg(end)/x.AB.Ca_target - 1) < .01
 				goon = false;
 			end
@@ -67,7 +67,8 @@ function varargout =  measureMetrics(X, Y, data)
 		x.dt = .1;
 		x.integrate;
 		V = x.integrate;
-		metrics = xtools.V2metrics(V,'sampling_rate',10);
+		metrics = xtools.V2metrics(V,'sampling_rate',1/x.dt);
+
 
 		% informational
 		disp(['Burst period is: ' strlib.oval(metrics.burst_period)])

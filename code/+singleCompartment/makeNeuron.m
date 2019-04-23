@@ -3,7 +3,12 @@
 % 8 channel neuron with integral controllers
 
 
-function x = makeNeuron()
+function x = makeNeuron(varargin)
+
+
+options.controller_type = 'oleary/IntegralController';
+
+options = corelib.parseNameValueArguments(options,varargin{:});
 
 prefix = 'prinz/';
 
@@ -26,6 +31,10 @@ x.AB.add('CalciumSensor');
 x.t_end = 20e3;
 
 channels = x.AB.find('conductance');
+
+
 for i = 1:length(channels)
-	x.AB.(channels{i}).add('oleary/IntegralController','tau_g',5e3);
+	x.AB.(channels{i}).add(options.controller_type);
 end
+
+x.set('*tau_g',5e3)
