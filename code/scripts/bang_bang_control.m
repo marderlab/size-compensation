@@ -34,10 +34,6 @@ gbar_x = [2 3];
 gbar_y = [1 4 5 6 8];
 status = singleCompartment.perturb.analyzeWithControl(x, gbar_x, gbar_y);
 
-model_hash = '0dea7e804b9255ac7bba7df3c3b015ff';
-
-
-% show model without regulation 
 
 save_name = hashlib.md5hash([x.hash hashlib.md5hash([gbar_x(:); gbar_y(:)])]);
 

@@ -18,7 +18,7 @@ fig_handle= figure('outerposition',[300 300 902 901],'PaperUnits','points','Pape
 ax.noreg = subplot(2,2,1); hold on
 ax.flow = subplot(2,2,2); hold on
 ax.diff = subplot(2,2,3); hold on
-
+ax.general = subplot(2,2,4); hold on
 
 v.plotBoundaries(ax.noreg)
 p = ax.noreg.Children;
@@ -125,6 +125,7 @@ v_diff.plotBoundaries(ax.diff,c,.8);
 % show some trajectories
 % pick points at random in the nice region
 N = 15;
+N=3; % speedup
 all_x = corelib.logrange(v.x_range(1),v.x_range(2),N);
 all_y = corelib.logrange(v.y_range(1),v.y_range(2),N);
 
@@ -220,20 +221,130 @@ figlib.label('y_offset',-.03,'font_size',26,'x_offset',-.02)
 
 
 
-% add a new axis for the text labels
-ax.txt = axes;
-ax.txt.Position = [.46 0.1 .4 .3];
 
 
-clear th
-th(1) = text(ax.txt,0,.2,'Sensitive to perturbation, compensation restores function','Color',c(1,:));
-th(2) = text(ax.txt,0,.4,'Sensitive to perturbation, compensation pathalogical','Color',c(2,:));
-th(3) = text(ax.txt,0,.6,'Robust to perturbation, compensation pathalogical','Color',c(3,:));
-th(4) = text(ax.txt,0,.8,'Robust to perturbation, compensation restores function','Color',c(4,:));
+
+% now we look at generalized perturbations 
+
+g0 = [379 165 2.35 .72 297 1713 .46 1370];
+
+% control -- integral controller
+x = singleCompartment.makeNeuron('controller_type','IntegralController');
+x.set('*gbar',g0)
+x.reset
+x.integrate;
+singleCompartment.configureControllers(x,5e3);
+x.t_end = 5e3;
 
 
-for i = 1:4
-	th(i).FontWeight = 'bold';
-	th(i).FontSize = 17;
+% measure the metrics 
+x.t_end = 20e3;
+x.dt = .1;
+x.integrate;
+V = x.integrate;
+metrics0 = xtools.V2metrics(V,'sampling_rate',1/x.dt);
+
+% make a matrix of all the gbars corresponding to the perturbations 
+N = 100;
+all_mu = linspace(-.90,.90,N); % fraction
+all_sigma = corelib.logrange(1e-3,.20,N); % fraction
+
+
+
+all_gbar = repmat(g0,N*N,1);
+
+idx = 1;
+
+for i = 1:N
+	for j = 1:N
+
+		all_gbar(idx,:) = (randn(8,1)*all_sigma(i) + all_mu(j)) + 1;
+		all_gbar(idx,:) = all_gbar(idx,:) .*g0;
+		idx = idx + 1;
+	end
 end
-axis(ax.txt,'off')
+
+
+
+all_gbar = abs(all_gbar);
+all_gbar(:,7) = g0(7);
+all_gbar = all_gbar';
+
+if exist('generalized_perturbations.mat','file') == 2
+
+	load('generalized_perturbations.mat','data','params')
+else
+
+	p = xgrid;
+	p.cleanup;
+	p.x = x;
+
+
+	p.sim_func = @singleCompartment.perturb.coherenceAmplitude;
+
+	parameters_to_vary = x.find('*gbar');
+
+	p.batchify(all_gbar,parameters_to_vary);
+
+
+	p.simulate;
+	p.wait;
+
+
+	[data, params] = p.gather;
+
+
+	save('generalized_perturbations.mat','data','params')
+end
+
+metrics = data{1};
+gbar = data{2};
+
+Ca_error  = data{3};
+
+% back calcualte mean and std of perturbation 
+all_gbar = params./g0';
+all_gbar(7,:) = [];
+all_gbar = all_gbar - 1;
+
+all_mu = mean(all_gbar);
+all_sigma = std(all_gbar);
+
+
+
+scatter(ax.general,all_sigma,metrics(1,:),34,all_mu,'filled','Marker','o')
+set(ax.general,'XScale','log')
+ylabel('Burst period (ms)')
+xlabel('\sigma_{perturbtion}')
+lh = plotlib.horzline(ax.general,metrics0.burst_period);
+lh.LineStyle = '-.';
+lh.Color = 'k';
+ch = colorbar;
+
+ax.general.YTick = 600:200:1400;
+
+ax.general.XLim(2) = max(all_sigma);
+ax.general.XTick = logspace(-4,-1,4);
+
+title(ch,'\mu_{perturb}')
+ch.YLim = [-.9 .9];
+
+ch.Position = [.65 .28 .018 .14];
+
+% % add a new axis for the text labels
+% ax.txt = axes;
+% ax.txt.Position = [.46 0.1 .4 .3];
+
+
+% clear th
+% th(1) = text(ax.txt,0,.2,'Sensitive to perturbation, compensation restores function','Color',c(1,:));
+% th(2) = text(ax.txt,0,.4,'Sensitive to perturbation, compensation pathalogical','Color',c(2,:));
+% th(3) = text(ax.txt,0,.6,'Robust to perturbation, compensation pathalogical','Color',c(3,:));
+% th(4) = text(ax.txt,0,.8,'Robust to perturbation, compensation restores function','Color',c(4,:));
+
+
+% for i = 1:4
+% 	th(i).FontWeight = 'bold';
+% 	th(i).FontSize = 17;
+% end
+% axis(ax.txt,'off')
