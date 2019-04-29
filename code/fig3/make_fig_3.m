@@ -14,11 +14,11 @@ load([model_hash '_0.voronoi'],'-mat')
 x0 = sum(v.data.g0(2:3));
 y0 = sum(v.data.g0([1 4 5 6 8]));
 
-fig_handle= figure('outerposition',[300 300 902 901],'PaperUnits','points','PaperSize',[902 901]); hold on
-ax.noreg = subplot(2,2,1); hold on
-ax.flow = subplot(2,2,2); hold on
-ax.diff = subplot(2,2,3); hold on
-ax.general = subplot(2,2,4); hold on
+fig_handle= figure('outerposition',[300 300 902 1200],'PaperUnits','points','PaperSize',[902 1200]); hold on
+ax.noreg = subplot(3,2,3); hold on
+ax.flow = subplot(3,2,4); hold on
+ax.diff = subplot(3,2,5); hold on
+ax.general = subplot(3,2,6); hold on
 
 v.plotBoundaries(ax.noreg)
 p = ax.noreg.Children;
@@ -85,7 +85,7 @@ singleCompartment.configureControllers(x);
 x.t_end = 5e3;
 
 
-figlib.pretty('plw',1,'lw',1,'fs',18)
+
 
 
 plot(ax.noreg,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
@@ -125,7 +125,7 @@ v_diff.plotBoundaries(ax.diff,c,.8);
 % show some trajectories
 % pick points at random in the nice region
 N = 15;
-N=3; % speedup
+
 all_x = corelib.logrange(v.x_range(1),v.x_range(2),N);
 all_y = corelib.logrange(v.y_range(1),v.y_range(2),N);
 
@@ -185,15 +185,6 @@ yy = sum(v.results.gbar(:,[1 4 5 6 8]),2);
 plot(ax.flow,xx,yy,'k+')
 
 
-xlabel(ax.noreg,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-ylabel(ax.noreg,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
-
-
-xlabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-ylabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
-
-xlabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-ylabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
 
 axis(ax.noreg,'square')
 axis(ax.flow,'square')
@@ -216,8 +207,6 @@ set(ax.diff,'XLim',[v.x_range(1),v.x_range(2)],'YLim',[v.y_range(1),v.y_range(2)
 
 title(ax.noreg,'Without regulation')
 title(ax.flow,'With regulation')
-
-figlib.label('y_offset',-.03,'font_size',26,'x_offset',-.02)
 
 
 
@@ -312,7 +301,7 @@ all_sigma = std(all_gbar);
 
 
 
-scatter(ax.general,all_sigma,metrics(1,:),34,all_mu,'filled','Marker','o')
+sh = scatter(ax.general,all_sigma,metrics(1,:),34,all_mu,'filled','Marker','o');
 set(ax.general,'XScale','log')
 ylabel('Burst period (ms)')
 xlabel('\sigma_{perturbtion}')
@@ -320,6 +309,10 @@ lh = plotlib.horzline(ax.general,metrics0.burst_period);
 lh.LineStyle = '-.';
 lh.Color = 'k';
 ch = colorbar;
+
+colormap(ax.general,(colormaps.redblue))
+
+sh.MarkerEdgeColor = [.5 .5 .5];
 
 ax.general.YTick = 600:200:1400;
 
@@ -331,20 +324,105 @@ ch.YLim = [-.9 .9];
 
 ch.Position = [.65 .28 .018 .14];
 
-% % add a new axis for the text labels
-% ax.txt = axes;
-% ax.txt.Position = [.46 0.1 .4 .3];
 
 
-% clear th
-% th(1) = text(ax.txt,0,.2,'Sensitive to perturbation, compensation restores function','Color',c(1,:));
-% th(2) = text(ax.txt,0,.4,'Sensitive to perturbation, compensation pathalogical','Color',c(2,:));
-% th(3) = text(ax.txt,0,.6,'Robust to perturbation, compensation pathalogical','Color',c(3,:));
-% th(4) = text(ax.txt,0,.8,'Robust to perturbation, compensation restores function','Color',c(4,:));
+% show example traces to understand the behaviour segmentation 
+
+singleCompartment.disableControllers(x);
+
+for i = 1:4
+	ax.example(i) = subplot(3,4,i); hold on
+	set(ax.example(i),'XLim',[0 1],'YLim',[-80 50])
+	ax.example(i).Position(4) = .1;
+	if i > 1
+		axis(ax.example(i),'off')
+	end
+
+end
+
+% canonical
+x.reset;
+x.set('*gbar',g0);
+x.t_end = 9.5e3;
+x.integrate;
+x.t_end = 2e3;
+V = x.integrate;
+
+time = (1:length(V))*x.dt*1e-3;
+plot(ax.example(1),time,V,'k')
 
 
-% for i = 1:4
-% 	th(i).FontWeight = 'bold';
-% 	th(i).FontSize = 17;
-% end
-% axis(ax.txt,'off')
+% silent
+g = singleCompartment.perturb.scaleG(g0,10,100, [2 3], [1 4 5 6 8]);
+x.reset;
+x.set('*gbar',g);
+x.t_end = 9.5e3;
+x.integrate;
+x.t_end = 2e3;
+V = x.integrate;
+
+time = (1:length(V))*x.dt*1e-3;
+plot(ax.example(2),time,V,'k')
+
+
+% other bursting
+g = singleCompartment.perturb.scaleG(g0,1e3,1e4, [2 3], [1 4 5 6 8]);
+x.reset;
+x.set('*gbar',g);
+x.t_end = 10e3;
+x.integrate;
+x.t_end = 2e3;
+V = x.integrate;
+
+time = (1:length(V))*x.dt*1e-3;
+plot(ax.example(3),time,V,'k')
+
+
+% one spike bursting
+g = singleCompartment.perturb.scaleG(g0,1e2,1e2, [2 3], [1 4 5 6 8]);
+x.reset;
+x.set('*gbar',g);
+x.t_end = 9.5e3;
+x.integrate;
+x.t_end = 2e3;
+V = x.integrate;
+
+time = (1:length(V))*x.dt*1e-3;
+plot(ax.example(4),time,V,'k')
+
+
+c= lines;
+clear h
+for i = 1:4
+	h(i) = scatter(ax.example(i),.1,30,240,'MarkerEdgeAlpha',0,'MarkerFaceColor',c(5,:),'MarkerFaceAlpha',.35);
+end
+
+h(2).MarkerFaceColor = c(1,:);
+h(3).MarkerFaceColor = c(4,:);
+h(4).MarkerFaceColor = c(2,:);
+
+
+xlabel(ax.noreg,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.noreg,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
+
+
+xlabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
+
+xlabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
+
+
+
+figlib.pretty('plw',1,'lw',1,'fs',18)
+
+
+figlib.label('y_offset',-.03,'font_size',26,'x_offset',-.02,'ignore_these',ax.example)
+
+
+ax.general.YLim = [400 1600];
+
+ylabel(ax.example(1),'V_m (mV)')
+xlabel(ax.example(1),'Time (s)')
+
+ch.Position = [.63 .23 .018 .075];
