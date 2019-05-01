@@ -14,11 +14,11 @@ load([model_hash '_0.voronoi'],'-mat')
 x0 = sum(v.data.g0(2:3));
 y0 = sum(v.data.g0([1 4 5 6 8]));
 
-fig_handle= figure('outerposition',[300 300 902 1200],'PaperUnits','points','PaperSize',[902 1200]); hold on
-ax.noreg = subplot(3,2,3); hold on
-ax.flow = subplot(3,2,4); hold on
-ax.diff = subplot(3,2,5); hold on
-ax.general = subplot(3,2,6); hold on
+fig_handle= figure('outerposition',[300 300 1201 812],'PaperUnits','points','PaperSize',[1201 812]); hold on
+ax.noreg = subplot(2,3,2); hold on
+ax.flow = subplot(2,3,3); hold on
+ax.diff = subplot(2,3,5); hold on
+ax.general = subplot(2,3,6); hold on
 
 v.plotBoundaries(ax.noreg)
 p = ax.noreg.Children;
@@ -329,14 +329,18 @@ ch.Position = [.65 .28 .018 .14];
 % show example traces to understand the behaviour segmentation 
 
 singleCompartment.disableControllers(x);
-
+idx = [1 4 7 10];
 for i = 1:4
-	ax.example(i) = subplot(3,4,i); hold on
+	ax.example(i) = subplot(4,3,idx(i)); hold on
 	set(ax.example(i),'XLim',[0 1],'YLim',[-80 50])
 	ax.example(i).Position(4) = .1;
-	if i > 1
-		axis(ax.example(i),'off')
+	if i < 4
+		ax.example(i).XColor = 'w';
+	else
+		xlabel('Time (s)')
 	end
+
+	ylabel(ax.example(i),'V_m (mV)')
 
 end
 
@@ -414,15 +418,18 @@ ylabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','
 
 
 
-figlib.pretty('plw',1,'lw',1,'fs',18)
+figlib.pretty('plw',1,'lw',1,'fs',19)
 
 
-figlib.label('y_offset',-.03,'font_size',26,'x_offset',-.02,'ignore_these',ax.example)
-
+axlib.label(ax.example(1),'a','y_offset',.03,'font_size',26,'x_offset',-.04);
+axlib.label(ax.noreg,'b','y_offset',-.03,'font_size',26,'x_offset',-.02);
+axlib.label(ax.flow,'c','y_offset',-.03,'font_size',26,'x_offset',-.02);
+axlib.label(ax.diff,'d','y_offset',-.03,'font_size',26,'x_offset',-.02);
+axlib.label(ax.general,'e','y_offset',-.03,'font_size',26,'x_offset',-.02);
 
 ax.general.YLim = [400 1600];
 
-ylabel(ax.example(1),'V_m (mV)')
-xlabel(ax.example(1),'Time (s)')
 
-ch.Position = [.63 .23 .018 .075];
+
+
+ch.Position = [.75 .3 .013 .12];
