@@ -77,7 +77,20 @@ function varargout =  measureMetrics(X, Y, data)
 
 		metrics.Ca_error = abs(x.AB.Ca_average/x.AB.Ca_target - 1);
 		metrics.gbar = x.get('*gbar');
-		results = Data(metrics);
+
+		if isempty(metrics.isi_min)
+			metrics.isi_min = NaN;
+		end
+
+		if isempty(metrics.isi_max)
+			metrics.isi_max = NaN;
+		end
+
+        try
+            results = Data(metrics);
+        catch
+            keyboard
+        end
 
 	end
 
