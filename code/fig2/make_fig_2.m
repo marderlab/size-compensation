@@ -1,429 +1,435 @@
 
+
 close all
 addpath('../')
-clear ch ax
 
-% make the figure
-figure('outerposition',[300 300 800 1000],'PaperUnits','points','PaperSize',[800 1000]); hold on
-
-ax.cartoon = subplot(6,1,1); hold on
-ax.spiking_g = subplot(6,4,5); hold on
-ax.spiking_V = subplot(6,4,6); hold on
-ax.spiking_f = subplot(3,2,3); hold on
-ax.spiking_Ca = subplot(3,2,5); hold on
-
-ax.bursting_g = subplot(6,4,7); hold on
-ax.bursting_V = subplot(6,4,8); hold on
-ax.bursting_f = subplot(3,2,4); hold on
-ax.bursting_Ca = subplot(3,2,6); hold on
+model_hash = '0dea7e804b9255ac7bba7df3c3b015ff';
 
 
-
-% make a spiking neuron
-x = singleCompartment.makeNeuron();
-singleCompartment.disableControllers(x)
-x.set('*gbar',[190 64 4.3 .62 0 1517 .125 1820])
-
-% measure calcium levels in base model
-x.dt = .1;
-x.t_end = 10e3;
-x.integrate;
-V = x.integrate;
-Ca0 = x.AB.Ca_average;
-metrics0 = xtools.V2metrics(V,'sampling_rate',10);
-
-time = (1:length(V))*1e-3*x.dt;
-plot(ax.spiking_V,time,V,'k')
-set(ax.spiking_V,'XLim',[0 1])
+% show model without regulation 
 
 
-x.plotgbars(ax.spiking_g,'AB')
+load([model_hash '_0.voronoi'],'-mat')
 
-for i = 1:length(x.handles.gbar_plot)
-	% make stem plots solid
-	x.handles.gbar_plot(i).MarkerFaceColor = x.handles.gbar_plot(i).Color;
-	x.handles.gbar_plot(i).LineWidth = 1;
+x0 = sum(v.data.g0(2:3));
+y0 = sum(v.data.g0([1 4 5 6 8]));
+
+fig_handle= figure('outerposition',[300 300 1201 812],'PaperUnits','points','PaperSize',[1201 812]); hold on
+ax.noreg = subplot(2,3,2); hold on
+ax.flow = subplot(2,3,3); hold on
+ax.diff = subplot(2,3,5); hold on
+ax.general = subplot(2,3,6); hold on
+
+v.plotBoundaries(ax.noreg)
+p = ax.noreg.Children;
+uistack(p(2),'top')
+c = lines(10);
+
+
+for i = 1:length(p)
+	if i == 2
+		p(i).FaceAlpha = .35;
+		p(i).FaceColor = c(5,:);
+	else
+		p(i).FaceAlpha = .35;
+	end
 end
 
-gbar = x.get('*gbar');
-model_hash = hashlib.md5hash([gbar(:); [2 3]'; [1 4 5 6 8]']);
-
-% measure Calcium level set
-singleCompartment.perturb.findCalciumNullcline(x);
-load([model_hash '_calcium.voronoi'],'v','-mat')
+% subtract the nice polygon from the not nice one
+new_shape = subtract(p(1).Shape,p(2).Shape);
+p(1).Shape = new_shape;
 
 
+x = singleCompartment.makeNeuron();
+singleCompartment.disableControllers(x)
+x.t_end = 5e3;
 
-% measure behaviour in a grid using xgrid
-% we will encode behaviour using colours 
+v0 = v;
 
+% plot equi-calcium line
 
-gridsize = 100;
-g0 = x.get('*gbar');
+load([ model_hash '_calcium.voronoi'],'-mat')
 
-x0 = sum(g0(2:3));
-y0 = sum(g0([1 4 5 6 8]));
+X = v.boundaries(1).regions.x;
+Y = v.boundaries(1).regions.y;
+X(mathlib.aeq(X,x0*10)) = NaN;
+plot(ax.noreg,X,Y,'r','LineWidth',2)
+plot(ax.flow,X,Y,'r','LineWidth',2)
 
-x_range = corelib.logrange(x0/100,x0*10,gridsize);
-y_range = corelib.logrange(y0/100,y0*10,gridsize);
-
-
-
-if exist('spiking_neuron_grid.mat','file')
-	load('spiking_neuron_grid.mat','g','Ca','metrics')
-else
-
-	
-
-	all_g = repmat(g0,1,100,100);
+set(ax.noreg,'XScale','log','YScale','log','XLim',v.x_range,'YLim',v.y_range)
 
 
-	for i = 1:gridsize
-		for j = 1:gridsize
-			all_g(:,i,j) =  singleCompartment.perturb.scaleG(g0,x_range(i),y_range(j));
-		end
+% plot the integral control solutioon
+
+load([model_hash '_1.voronoi'],'-mat')
+
+v.plotBoundaries(ax.flow)
+set(ax.flow,'XScale','log','YScale','log')
+
+
+p = ax.flow.Children;
+for i = 1:length(p)
+	if i == 5
+		p(i).FaceColor = c(5,:);
 	end
+end
 
 
-	all_g = reshape(all_g,8,gridsize*gridsize);
+
+
+x = singleCompartment.makeNeuron();
+x.set('*gbar',v.data.g0)
+x.reset
+x.integrate;
+singleCompartment.configureControllers(x);
+x.t_end = 5e3;
+
+
+
+
+
+plot(ax.noreg,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
+plot(ax.flow,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
+plot(ax.diff,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
+
+
+% now subtract one map from the other
+R0 = v0.findBoundaries;
+R = v.findBoundaries;
+
+v_diff = voronoiSegment;
+v_diff.x_range = v.x_range;
+v_diff.y_range = v.y_range;
+
+v_diff.n_classes = 4;
+
+
+RD = NaN*R;
+RD(R0 ~= 3 & R == 3) = 1; % sensitive to perturb, comp. restores function
+RD(R0 ~= 3 & R ~= 3) = 2; % sensitive to perturb, comp. pathalogical
+RD(R0 == 3 & R ~= 3) = 3; % robust to perturb, comp. pathalogical
+RD(R0 == 3 & R == 3) = 4; % robust to perturb, comp. restores function
+
+v_diff.traceBoundaries(RD);
+
+c = parula(5);
+% c(1,:) = [0    0.6706    0];
+c(2,:) = [255 174 0]/255;
+c(3,:) = [0.9569    0 0 ];
+c(4,:) = [0    0.4980   0];
+v_diff.plotBoundaries(ax.diff,c,.8);
+
+
+
+
+% show some trajectories
+% pick points at random in the nice region
+N = 15;
+
+all_x = corelib.logrange(v.x_range(1),v.x_range(2),N);
+all_y = corelib.logrange(v.y_range(1),v.y_range(2),N);
+
+xx = v.boundaries(3).regions.x;
+yy = v.boundaries(3).regions.y;
+
+
+for i = 1:N
+	for j = 1:N
+
+		% which region is this point in? 
+		this_color = [];
+		for idx = 1:length(p)
+			if ~isa(p(idx),'matlab.graphics.primitive.Polygon')
+				continue
+			end
+			xx = p(idx).Shape.Vertices(:,1);
+			yy = p(idx).Shape.Vertices(:,2);
+
+			if inpolygon(all_x(i),all_y(j),xx,yy)
+				this_color = p(idx).FaceColor;
+				break
+			end
+
+		end
+
+		if isempty(this_color)
+			continue
+		end
+
+		this_color = 'k';
+
+		g = singleCompartment.perturb.scaleG(v.data.g0,all_x(i),all_y(j));
+		x.set('*gbar',g)
+		x.set('*Controller.m',g*x.AB.A)
+		x.AB.CaT.E = 30;
+		x.AB.CaS.E = 30;
+		x.reset;
+		x.t_end = 1e3;
+		[~,~,C] = x.integrate;
+		C(:,7) = [];
+		g = C(:,2:2:end);
+		X = sum(g(:,[2:3]),2); 
+		Y = sum(g(:,[1 4 5 6 8]),2); 
+
+		plotlib.trajectory(ax.flow,X,Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'norm_x',false,'norm_y',false,'n_arrows',1);
+		drawnow
+
+
+	end
+end
+
+
+% plot final points
+xx = sum(v.results.gbar(:,[2 3]),2);
+yy = sum(v.results.gbar(:,[1 4 5 6 8]),2);
+plot(ax.flow,xx,yy,'k+')
+
+
+
+axis(ax.noreg,'square')
+axis(ax.flow,'square')
+axis(ax.diff,'square')
+
+
+
+ax.flow.XTick = [10 100 1e3];
+ax.noreg.XTick = [10 100 1e3];
+ax.diff.XTick = [10 100 1e3];
+
+ax.flow.XMinorTick = 'on';
+ax.noreg.XMinorTick = 'on';
+ax.diff.XMinorTick = 'on';
+
+set(ax.flow,'XLim',[v.x_range(1),v.x_range(2)],'YLim',[v.y_range(1),v.y_range(2)])
+set(ax.noreg,'XLim',[v.x_range(1),v.x_range(2)],'YLim',[v.y_range(1),v.y_range(2)])
+set(ax.diff,'XLim',[v.x_range(1),v.x_range(2)],'YLim',[v.y_range(1),v.y_range(2)])
+
+
+title(ax.noreg,'Without regulation')
+title(ax.flow,'With regulation')
+
+
+
+
+
+
+% now we look at generalized perturbations 
+
+g0 = [379 165 2.35 .72 297 1713 .46 1370];
+
+% control -- integral controller
+x = singleCompartment.makeNeuron('controller_type','IntegralController');
+x.set('*gbar',g0)
+x.reset
+x.integrate;
+singleCompartment.configureControllers(x,5e3);
+x.t_end = 5e3;
+
+
+% measure the metrics 
+x.t_end = 20e3;
+x.dt = .1;
+x.integrate;
+V = x.integrate;
+metrics0 = xtools.V2metrics(V,'sampling_rate',1/x.dt);
+
+% make a matrix of all the gbars corresponding to the perturbations 
+N = 100;
+all_mu = linspace(-.90,.90,N); % fraction
+all_sigma = corelib.logrange(1e-3,.20,N); % fraction
+
+
+
+all_gbar = repmat(g0,N*N,1);
+
+idx = 1;
+
+for i = 1:N
+	for j = 1:N
+
+		all_gbar(idx,:) = (randn(8,1)*all_sigma(i) + all_mu(j)) + 1;
+		all_gbar(idx,:) = all_gbar(idx,:) .*g0;
+		idx = idx + 1;
+	end
+end
+
+
+
+all_gbar = abs(all_gbar);
+all_gbar(:,7) = g0(7);
+all_gbar = all_gbar';
+
+if exist('generalized_perturbations.mat','file') == 2
+
+	load('generalized_perturbations.mat','data','params')
+else
 
 	p = xgrid;
 	p.cleanup;
 	p.x = x;
-	p.n_batches = 40;
-	p.sim_func = @singleCompartment.measureMetrics;
-	p.batchify(all_g,x.find('*gbar'));
+
+
+	p.sim_func = @singleCompartment.perturb.coherenceAmplitude;
+
+	parameters_to_vary = x.find('*gbar');
+
+	p.batchify(all_gbar,parameters_to_vary);
 
 
 	p.simulate;
-	p.wait()
+	p.wait;
 
 
-	[sim_data,metadata] = p.gather;
-	metrics = sim_data{1};
-	Ca = sim_data{2};
-	g = sim_data{3};
+	[data, params] = p.gather;
 
 
-	save('spiking_neuron_grid.mat','g','Ca','metrics')
+	save('generalized_perturbations.mat','data','params')
+end
+
+metrics = data{1};
+gbar = data{2};
+
+Ca_error  = data{3};
+
+% back calculate mean and std of perturbation 
+all_gbar = params./g0';
+all_gbar(7,:) = [];
+all_gbar = all_gbar - 1;
+
+all_mu = mean(all_gbar);
+all_sigma = std(all_gbar);
+
+
+
+sh = scatter(ax.general,all_sigma,metrics(1,:),34,all_mu,'filled','Marker','o');
+set(ax.general,'XScale','log')
+ylabel('Burst period (ms)')
+xlabel('\sigma_{perturbtion}')
+lh = plotlib.horzline(ax.general,metrics0.burst_period);
+lh.LineStyle = '-.';
+lh.Color = 'k';
+ch = colorbar;
+
+colormap(ax.general,(colormaps.redblue))
+
+sh.MarkerEdgeColor = [.5 .5 .5];
+
+ax.general.YTick = 600:200:1400;
+
+ax.general.XLim(2) = max(all_sigma);
+ax.general.XTick = logspace(-4,-1,4);
+
+title(ch,'\mu_{perturb}')
+ch.YLim = [-.9 .9];
+
+ch.Position = [.65 .28 .018 .14];
+
+
+
+% show example traces to understand the behaviour segmentation 
+
+singleCompartment.disableControllers(x);
+idx = [1 4 7 10];
+for i = 1:4
+	ax.example(i) = subplot(4,3,idx(i)); hold on
+	set(ax.example(i),'XLim',[0 1],'YLim',[-80 50])
+	ax.example(i).Position(4) = .1;
+	if i < 4
+		ax.example(i).XColor = 'w';
+	else
+		xlabel('Time (s)')
+	end
+
+	ylabel(ax.example(i),'V_m (mV)')
 
 end
 
+% canonical
+x.reset;
+x.set('*gbar',g0);
+x.t_end = 9.5e3;
+x.integrate;
+x.t_end = 2e3;
+V = x.integrate;
 
-% project g onto plane
-xx = sum(g(2:3,:));
-yy = sum(g([1 4 5 6 8],:));
-
-f = log(metrics(5,:)./metrics0.firing_rate);
-
-
-
-show_here = ax.spiking_f;
-scatter(show_here,xx,yy,63,f,'filled','Marker','s')
-set(show_here,'XScale','log','YScale','log')
-c = parula;
-c(1,:) = 1;
-colormap(show_here,c);
-caxis(show_here,[-.5 2])
-
-% show where the reference model is
-plot(show_here,x0,y0,'p','MarkerSize',12,'MarkerFaceColor','k','MarkerEdgeColor','k')
-
-ch.spiking_f = colorbar(show_here);
-set(ch.spiking_f,'YTick',[-.5 log([25 50 100]/25)],'YTickLabel',{'Silent','25', '50','100'});
-title(ch.spiking_f,'f (Hz)')
-
-plot((show_here),x_range,y_range,'k:','LineWidth',2);
-axis((show_here),'square');
+time = (1:length(V))*x.dt*1e-3;
+plot(ax.example(1),time,V,'k')
 
 
+% silent
+g = singleCompartment.perturb.scaleG(g0,10,100, [2 3], [1 4 5 6 8]);
+x.reset;
+x.set('*gbar',g);
+x.t_end = 9.5e3;
+x.integrate;
+x.t_end = 2e3;
+V = x.integrate;
 
-show_here = ax.spiking_Ca; hold on
-
-rel_ca = log2(Ca./Ca0);
-rel_ca(rel_ca<-2) = -2;
-
-scatter(show_here,xx,yy,63,rel_ca,'filled','Marker','s')
-
-set(show_here,'XScale','log','YScale','log')
-ch.spiking_Ca = colorbar(show_here);
-colormap(show_here,colormaps.redblue);
-
-
-caxis((show_here),[-4 4])
+time = (1:length(V))*x.dt*1e-3;
+plot(ax.example(2),time,V,'k')
 
 
-plot((show_here),x_range,y_range,'k:','LineWidth',2);
-axis((show_here),'square');
-
-set(ch.spiking_Ca,'YTick',[-4:2:4],'YTickLabel',{'<1/16','1/4', 'Target','4X','16X'});
-title(ch.spiking_Ca,'<[Ca^{2+}]>')
-
-
-
-% plot level set
-xx = v.boundaries(1).regions.x;
-yy = v.boundaries(1).regions.y;
-xx(xx==max(xx)) = NaN;
-yy(yy==max(yy)) = NaN;
-plot(show_here,xx,yy,'k')
-
-XLim = [min(x_range)*.8 max(x_range)*1.2];
-YLim = [min(y_range)*.8 max(y_range)*1.2];
-
-set(show_here,'XLim',XLim,'YLim',YLim,'XTick',[10 100 1e3])
-set(ax.spiking_f,'XLim',XLim,'YLim',YLim,'XTick',[10 100 1e3])
-xlabel(show_here,'$\mathbf{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-ylabel(show_here,'$\mathbf{\Sigma \bar{g} - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-ylabel(ax.spiking_f,'$\mathbf{\Sigma \bar{g} - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-
-
-
-
-
-
-% make a bursting neuron
-x = singleCompartment.makeNeuron();
-singleCompartment.disableControllers(x)
-x.set('*gbar',[379 165 2.35 .72 297 1713 .46 1370])
-
-gbar = x.get('*gbar');
-model_hash = hashlib.md5hash([gbar(:); [2 3]'; [1 4 5 6 8]']);
-
-% measure calcium levels in base model
-x.dt = .1;
+% other bursting
+g = singleCompartment.perturb.scaleG(g0,1e3,1e4, [2 3], [1 4 5 6 8]);
+x.reset;
+x.set('*gbar',g);
 x.t_end = 10e3;
 x.integrate;
+x.t_end = 2e3;
 V = x.integrate;
-Ca0 = x.AB.Ca_average;
-metrics0 = xtools.V2metrics(V,'sampling_rate',10);
 
-% show gbars
-x.plotgbars(ax.bursting_g,'AB')
+time = (1:length(V))*x.dt*1e-3;
+plot(ax.example(3),time,V,'k')
 
-for i = 1:length(x.handles.gbar_plot)
-	% make stem plots solid
-	x.handles.gbar_plot(i).MarkerFaceColor = x.handles.gbar_plot(i).Color;
-	x.handles.gbar_plot(i).LineWidth = 1;
+
+% one spike bursting
+g = singleCompartment.perturb.scaleG(g0,1e2,1e2, [2 3], [1 4 5 6 8]);
+x.reset;
+x.set('*gbar',g);
+x.t_end = 9.5e3;
+x.integrate;
+x.t_end = 2e3;
+V = x.integrate;
+
+time = (1:length(V))*x.dt*1e-3;
+plot(ax.example(4),time,V,'k')
+
+
+c= lines;
+clear h
+for i = 1:4
+	h(i) = scatter(ax.example(i),.1,30,240,'MarkerEdgeAlpha',0,'MarkerFaceColor',c(5,:),'MarkerFaceAlpha',.35);
 end
 
-% show voltage trace
-time = (1:length(V))*1e-3*x.dt;
-plot(ax.bursting_V,time,V,'k')
-set(ax.bursting_V,'XLim',[0 2])
+h(2).MarkerFaceColor = c(1,:);
+h(3).MarkerFaceColor = c(4,:);
+h(4).MarkerFaceColor = c(2,:);
 
-% measure Calcium level set
-singleCompartment.perturb.findCalciumNullcline(x);
-load([model_hash '_calcium.voronoi'],'v','-mat')
 
+xlabel(ax.noreg,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.noreg,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
 
-% measure behaviour in a grid using xgrid
-% we will encode behaviour using colours 
 
-gridsize = 100;
-g0 = x.get('*gbar');
+xlabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
 
-x0 = sum(g0(2:3));
-y0 = sum(g0([1 4 5 6 8]));
+xlabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
 
-x_range = corelib.logrange(x0/100,x0*10,gridsize);
-y_range = corelib.logrange(y0/100,y0*10,gridsize);
 
-if exist('bursting_neuron_grid.mat','file')
-	load('bursting_neuron_grid.mat','g','Ca','metrics')
-else
 
+figlib.pretty('plw',1,'lw',1,'fs',19)
 
-	all_g = repmat(g0,1,100,100);
 
-	for i = 1:gridsize
-		for j = 1:gridsize
-			all_g(:,i,j) =  singleCompartment.perturb.scaleG(g0,x_range(i),y_range(j));
-		end
-	end
+axlib.label(ax.example(1),'a','y_offset',.03,'font_size',26,'x_offset',-.04);
+axlib.label(ax.noreg,'b','y_offset',-.03,'font_size',26,'x_offset',-.02);
+axlib.label(ax.flow,'c','y_offset',-.03,'font_size',26,'x_offset',-.02);
+axlib.label(ax.diff,'d','y_offset',-.03,'font_size',26,'x_offset',-.02);
+axlib.label(ax.general,'e','y_offset',-.03,'font_size',26,'x_offset',-.02);
 
+ax.general.YLim = [400 1600];
 
-	all_g = reshape(all_g,8,gridsize*gridsize);
 
-	p = xgrid;
-	p.cleanup;
-	p.x = x;
-	p.n_batches = 40;
-	p.sim_func = @singleCompartment.measureMetrics;
-	p.batchify(all_g,x.find('*gbar'));
 
 
-	p.simulate;
-	p.wait()
-
-
-	[sim_data,metadata] = p.gather;
-	metrics = sim_data{1};
-	Ca = sim_data{2};
-	g = sim_data{3};
-
-
-	save('bursting_neuron_grid.mat','g','Ca','metrics')
-
-end
-
-
-% project g onto plane
-xx = sum(g(2:3,:));
-yy = sum(g([1 4 5 6 8],:));
-
-f = metrics(5,:);
-f = f/max(f);
-
-
-regularity = metrics(9,:)./metrics(11,:);
-regularity = log(regularity);
-regularity = regularity/max(regularity);
-
-
-spike_peak = metrics(19,:);
-spike_peak = spike_peak - min(spike_peak);
-spike_peak = spike_peak/max(spike_peak);
-
-C = zeros(length(xx),3);
-C(:,3) = f;
-C(:,1) = 1-regularity;
-C(:,2) = spike_peak;
-
-show_here = ax.bursting_f;
-scatter(show_here,xx,yy,63,C,'filled','Marker','s')
-set(show_here,'XScale','log','YScale','log')
-axis((show_here),'square');
-
-plot(ax.bursting_f,x_range,y_range,'k:','LineWidth',2);
-
-% show where the reference model is
-plot(ax.bursting_f,x0,y0,'p','MarkerSize',12,'MarkerFaceColor','k','MarkerEdgeColor','k')
-
-
-% show calcium
-show_here = ax.bursting_Ca; hold on
-
-rel_ca = log2(Ca./Ca0);
-rel_ca(rel_ca<-2) = -2;
-
-scatter(show_here,xx,yy,63,rel_ca,'filled','Marker','s')
-
-set(show_here,'XScale','log','YScale','log')
-ch.bursting_Ca = colorbar(show_here);
-colormap(show_here,colormaps.redblue);
-ch.bursting_Ca.Position = [.92 .11 .01 .1];
-
-caxis((show_here),[-4 4])
-
-
-plot((show_here),x_range,y_range,'k:','LineWidth',2);
-axis((show_here),'square');
-
-set(ch.bursting_Ca,'YTick',[-4:2:4],'YTickLabel',{'<1/16','1/4', 'Target','4X','16X'});
-title(ch.bursting_Ca,'<[Ca^{2+}]>')
-
-
-xx = v.boundaries(1).regions.x;
-yy = v.boundaries(1).regions.y;
-xx(xx==max(xx)) = NaN;
-yy(yy==max(yy)) = NaN;
-plot(show_here,xx,yy,'k')
-
-
-XLim = [min(x_range)*.8 max(x_range)*1.2];
-YLim = [min(y_range)*.8 max(y_range)*1.2];
-
-set(show_here,'XLim',XLim,'YLim',YLim,'XTick',[10 100 1e3])
-xlabel(show_here,'$\mathbf{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-ylabel(show_here,'$\mathbf{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
-
-set(ax.bursting_f,'XLim',XLim,'YLim',YLim,'XTick',[10 100 1e3])
-
-ylabel(ax.bursting_f,'$\mathbf{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
-
-axlib.makeEphys(ax.bursting_V)
-axlib.makeEphys(ax.spiking_V,'time_scale',.5)
-
-
-
-
-
-
-
-
-% cosmetic fixes
-ax.spiking_g.Position = [.1 .73 .15 .05];
-ax.spiking_g.YLim = [.1 1e4];
-ax.spiking_g.YTick = [1 100 1e3];
-ax.spiking_g.YMinorTick = 'off';
-
-ax.spiking_V.Position = [.3 .73 .1 .05];
-
-ax.bursting_g.Position = [.6 .73 .15 .05];
-ax.bursting_g.YLim = [.1 1e4];
-ax.bursting_g.YTick = [1 100 1e3];
-ax.bursting_g.YMinorTick = 'off';
-
-ax.bursting_V.Position = [.8 .73 .1 .05];
-
-ylabel(ax.spiking_g,'$\mathbf{\bar{g} (\mu S/mm^2)}$','interpreter','latex')
-ylabel(ax.bursting_g,'$\mathbf{\bar{g} (\mu S/mm^2)}$','interpreter','latex')
-
-ax.spiking_Ca.Position = [.1 .05 .3 .3];
-ax.bursting_Ca.Position = [.6 .05 .3 .3];
-ax.spiking_f.Position = [.1 .35 .3 .3];
-ax.bursting_f.Position = [.6 .35 .3 .3];
-
-ch.spiking_Ca.Position = [.43 .11 .01 .1];
-
-ch.spiking_f.Position = [.43 .41 .01 .1];
-
-% create fake axes over the bursting f plot to put colorbars there
-for i = 1:3
-	fake_axes(i) = axes;
-	fake_axes(i).Position = ax.bursting_f.Position;
-	fake_axes(i).Position(1) = 1;
-	set(fake_axes(i),'YTick',[],'YColor','w')
-
-	% create the colormaps we need
-	C = zeros(100,3);
-	for j = 1:3
-		C(:,j) = linspace(1,0,100);
-	end
-	C(:,i) = 1;
-	colormap(fake_axes(i),C);
-
-
-	fake_colorbar(i) = colorbar(fake_axes(i));
-	fake_colorbar(i).YTick = [];
-	fake_colorbar(i).Location = 'northoutside';
-end
-
-for i = 1:3
-	fake_colorbar(i).Position = [.51 + i*.1 .64 .09 .01];
-end
-
-th = title(fake_colorbar(1),'ISI regularity','FontSize',13);
-th.Position = [40 10 0];
-th = title(fake_colorbar(2),'Peak voltage','FontSize',13);
-th.Position = [40 10 0];
-th = title(fake_colorbar(3),'Firing rate','FontSize',13);
-th.Position = [40 10 0];
-
-
-I = imread('cartoon.png');
-figlib.showImageInAxes(ax.cartoon,I)
-
-figlib.pretty('plw',1,'lw',1,'fs',12)
-
-axlib.label(ax.cartoon,'a');
-
-axlib.label(ax.spiking_g,'b','x_offset',-.02);
-axlib.label(ax.spiking_f,'c','x_offset',-.02,'y_offset',-.04);
-axlib.label(ax.spiking_Ca,'d','x_offset',-.02,'y_offset',-.04);
-
-axlib.label(ax.bursting_g,'e','x_offset',-.02);
-axlib.label(ax.bursting_f,'f','x_offset',-.02,'y_offset',-.04);
-axlib.label(ax.bursting_Ca,'g','x_offset',-.02,'y_offset',-.04);
-
+ch.Position = [.75 .3 .013 .12];

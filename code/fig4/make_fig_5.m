@@ -16,8 +16,6 @@ axis(ax(4),'square')
 
 
 
-figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',15)
-
 
 
 
@@ -164,8 +162,8 @@ for i = 1:length(alldata)
 	plot(ax(4),alldata(i).x,alldata(i).y,'Color',[0 0 0 .05])
 end
 set(ax(4),'XScale','log','YScale','log','XLim',[1/100 10],'YLim',[1/100 10])
-xlabel(ax(4),'Fold change in g_{Ca}')
-ylabel(ax(4),'Fold change in g_{others}')
+xlabel(ax(4),'$\Sigma \bar{g}_{Ca}$ (fold change)','interpreter','latex')
+ylabel(ax(4),'$\Sigma \bar{g} - \Sigma \bar{g}_{Ca}$  (fold change)','interpreter','latex')
 
 
 
@@ -397,59 +395,57 @@ end
 
 
 
+figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',15)
 
 
 
+axlib.label(ax(1),'a','x_offset',-.05,'y_offset',0,'font_size',24);
+axlib.label(ax(2),'b','x_offset',-.05,'y_offset',0,'font_size',24);
+axlib.label(ax(3),'c','x_offset',-.05,'y_offset',0,'font_size',24);
+axlib.label(ax(4),'d','x_offset',-.05,'y_offset',0,'font_size',24);
 
-axlib.label(ax(1),'a','x_offset',-.05,'y_offset',0,'font_size',24)
-axlib.label(ax(2),'b','x_offset',-.05,'y_offset',0,'font_size',24)
-axlib.label(ax(3),'c','x_offset',-.05,'y_offset',0,'font_size',24)
-axlib.label(ax(4),'d','x_offset',-.05,'y_offset',0,'font_size',24)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ax(3).YLim = [600 1500];
 
 
 return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -512,4 +508,4 @@ for i = 1:length(S)
 end
 
 
-figlib.pretty
+figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',15)

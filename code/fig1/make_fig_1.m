@@ -37,7 +37,7 @@ for i = 6:-1:1
 	ax(i) = subplot(3,2,i); hold on
 end
 
-figlib.pretty('plw',1,'lw',1,'fs',12)
+figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',12)
 
 % show spiking and silent cell
 x.AB.A = data.A0/10;
@@ -301,3 +301,7 @@ axlib.label(ax(3),'b','x_offset',-.01,'y_offset',-.01);
 axlib.label(ax(4),'c','x_offset',-.01,'y_offset',-.01);
 axlib.label(ax(5),'d','x_offset',-.01,'y_offset',-.01);
 axlib.label(ax(6),'e','x_offset',-.01,'y_offset',-.01);
+
+title(ax(2),'Large cell (silent)','FontWeight','normal')
+title(ax(1),'Small cell (functional)','FontWeight','normal')
+ax(4).Position = [.55 .38 .34 .25];
