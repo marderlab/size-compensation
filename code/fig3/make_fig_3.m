@@ -291,7 +291,7 @@ gbar = data{2};
 
 Ca_error  = data{3};
 
-% back calcualte mean and std of perturbation 
+% back calculate mean and std of perturbation 
 all_gbar = params./g0';
 all_gbar(7,:) = [];
 all_gbar = all_gbar - 1;

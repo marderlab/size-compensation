@@ -14,7 +14,131 @@ axis(ax(1),'square')
 axis(ax(2),'square')
 axis(ax(4),'square')
 
-figlib.pretty('plw',1,'lw',1,'fs',15)
+
+
+figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',15)
+
+
+
+
+% now we look at generalized perturbations 
+
+g0 = [379 165 2.35 .72 297 1713 .46 1370];
+
+% control -- integral controller
+x = singleCompartment.makeNeuron('controller_type','IntegralController');
+x.set('*gbar',g0)
+x.reset
+x.integrate;
+singleCompartment.configureControllers(x,5e3);
+x.t_end = 5e3;
+
+
+% measure the metrics 
+x.t_end = 20e3;
+x.dt = .1;
+x.integrate;
+V = x.integrate;
+metrics0 = xtools.V2metrics(V,'sampling_rate',1/x.dt);
+
+% make a matrix of all the gbars corresponding to the perturbations 
+N = 100;
+all_mu = linspace(-.90,.90,N); % fraction
+all_sigma = corelib.logrange(1e-3,.20,N); % fraction
+
+
+
+all_gbar = repmat(g0,N*N,1);
+
+idx = 1;
+
+for i = 1:N
+	for j = 1:N
+
+		all_gbar(idx,:) = (randn(8,1)*all_sigma(i) + all_mu(j)) + 1;
+		all_gbar(idx,:) = all_gbar(idx,:) .*g0;
+		idx = idx + 1;
+	end
+end
+
+
+
+all_gbar = abs(all_gbar);
+all_gbar(:,7) = g0(7);
+all_gbar = all_gbar';
+
+if exist('generalized_perturbations.mat','file') == 2
+
+	load('generalized_perturbations.mat','data','params')
+else
+
+	p = xgrid;
+	p.cleanup;
+	p.x = x;
+
+
+	p.sim_func = @singleCompartment.perturb.coherenceAmplitude;
+
+	parameters_to_vary = x.find('*gbar');
+
+	p.batchify(all_gbar,parameters_to_vary);
+
+
+	p.simulate;
+	p.wait;
+
+
+	[data, params] = p.gather;
+
+
+	save('generalized_perturbations.mat','data','params')
+end
+
+metrics = data{1};
+gbar = data{2};
+
+Ca_error  = data{3};
+
+% back calculate mean and std of perturbation 
+all_gbar = params./g0';
+all_gbar(7,:) = [];
+all_gbar = all_gbar - 1;
+
+all_mu = mean(all_gbar);
+all_sigma = std(all_gbar);
+
+
+
+sh = scatter(ax(3),all_sigma,metrics(1,:),34,all_mu,'filled','Marker','o');
+set(ax(3),'XScale','log')
+ylabel(ax(3),'Burst period (ms)')
+xlabel(ax(3),'\sigma_{perturbtion}')
+lh = plotlib.horzline(ax(3),metrics0.burst_period);
+lh.LineStyle = '-.';
+lh.Color = 'k';
+ch = colorbar;
+colormap(ax(3),(colormaps.redblue))
+colormap(ch,colormaps.redblue)
+
+sh.MarkerEdgeColor = [.5 .5 .5];
+
+ax(3).YTick = 600:200:1400;
+
+ax(3).XLim(2) = max(all_sigma);
+ax(3).XTick = logspace(-4,-1,4);
+
+title(ch,'\mu_{perturb}')
+caxis([-.9 .9])
+
+ch.Position = [.2 .28 .018 .14];
+
+
+
+
+
+
+
+
 
 
 
@@ -26,37 +150,6 @@ alldata = singleCompartment.perturb.consolidateCalciumNullclines(allfiles);
 
 
 
-% show CV of various things
-clear S
-hold(ax(3),'on')
-S(1) = barh(ax(3),1,statlib.cv([alldata.nspikes]),'FaceColor','r','EdgeColor','r');
-S(2) = barh(ax(3),2,statlib.cv([alldata.burst_period]),'FaceColor','r','EdgeColor','r');
-S(3) = barh(ax(3),3,statlib.cv([alldata.duty_cycle]),'FaceColor','r','EdgeColor','r');
-
-g0 = [alldata.g0];
-
-S(4) = barh(ax(3),4,statlib.cv(g0(3,:)),'FaceColor','k','EdgeColor','k');
-S(5) = barh(ax(3),5,statlib.cv(g0(4,:)),'FaceColor','k','EdgeColor','k');
-S(6) = barh(ax(3),6,statlib.cv(g0(5,:)),'FaceColor','k','EdgeColor','k');
-
-S(7) = barh(ax(3),7,statlib.cv(g0(8,:)./g0(6,:)),'FaceColor','k','EdgeColor','k');
-S(8) = barh(ax(3),8,statlib.cv(g0(8,:)./g0(5,:)),'FaceColor','k','EdgeColor','k');
-
-ax(3).XScale = 'log';
-
-ax(3).XLim = [.01 1];
-ax(3).Position(4) = .22;
-ax(3).Position(2) = .15;
-xlabel(ax(3),'CV')
-set(ax(3),'YTick',[1:8],'YTickLabel',{'#spikes','burst period','duty cycle','CaT','H','KCa','NaV/Kd','NaV/KCa'})
-
-for i = 1:length(S)
-	S(i).LineWidth = 1.5;
-	S(i).BarWidth = .5;
-end
-
-ax(3).Position(1) = .2;
-ax(3).Position(3) = .25;
 
 
 
@@ -280,7 +373,143 @@ for i = 1:N
 end
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 axlib.label(ax(1),'a','x_offset',-.05,'y_offset',0,'font_size',24)
 axlib.label(ax(2),'b','x_offset',-.05,'y_offset',0,'font_size',24)
 axlib.label(ax(3),'c','x_offset',-.05,'y_offset',0,'font_size',24)
 axlib.label(ax(4),'d','x_offset',-.05,'y_offset',0,'font_size',24)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+return
+
+
+
+% show CVs of metrics and parameters in a supplement
+g0 = [alldata.g0];
+
+
+figure('outerposition',[300 300 901 901],'PaperUnits','points','PaperSize',[901 901]); hold on
+
+ax = figlib.gridAxes(8);
+
+channels = {'A','CaS','CaT','H','KCa','Kd','L','NaV'};
+
+for i = 1:7
+	for j = i+1:8
+		plot(ax(i,j),g0(i,:),g0(j,:),'k.')
+		if i > 1
+			set(ax(i,j),'YTickLabel',{})
+		else
+			ylabel(ax(i,j),['$\bar{g}_{' channels{j} '}$'],'interpreter','latex')
+		end
+		if j < 8
+			set(ax(i,j),'XTickLabel',{})
+		else
+			xlabel(ax(i,j),['$\bar{g}_{' channels{i} '}$'],'interpreter','latex')
+		end
+		ax(i,j).XLim(1) = 0;
+		axis(ax(i,j),'square')
+	end
+	
+end
+
+
+
+
+clear S
+axs = subplot(2,2,2); hold on
+S(1) = barh(axs,1,statlib.cv([alldata.nspikes]),'FaceColor','r','EdgeColor','r');
+S(2) = barh(axs,2,statlib.cv([alldata.burst_period]),'FaceColor','r','EdgeColor','r');
+S(3) = barh(axs,3,statlib.cv([alldata.duty_cycle]),'FaceColor','r','EdgeColor','r');
+
+
+S(4) = barh(axs,4,statlib.cv(g0(3,:)),'FaceColor','k','EdgeColor','k');
+S(5) = barh(axs,5,statlib.cv(g0(4,:)),'FaceColor','k','EdgeColor','k');
+S(6) = barh(axs,6,statlib.cv(g0(5,:)),'FaceColor','k','EdgeColor','k');
+
+S(7) = barh(axs,7,statlib.cv(g0(8,:)./g0(6,:)),'FaceColor','k','EdgeColor','k');
+S(8) = barh(axs,8,statlib.cv(g0(8,:)./g0(5,:)),'FaceColor','k','EdgeColor','k');
+
+axs.XScale = 'log';
+axs.Position = [.675 .675 .25 .25];
+axs.XLim = [.01 1];
+
+xlabel(axs,'CV')
+set(axs,'YTick',[1:8],'YTickLabel',{'#spikes','burst period','duty cycle','CaT','H','KCa','NaV/Kd','NaV/KCa'})
+
+for i = 1:length(S)
+	S(i).LineWidth = 1.5;
+	S(i).BarWidth = .5;
+end
+
+
+figlib.pretty
