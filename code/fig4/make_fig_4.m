@@ -110,7 +110,7 @@ all_sigma = std(all_gbar);
 sh = scatter(ax(3),all_sigma,metrics(1,:),34,all_mu,'filled','Marker','o');
 set(ax(3),'XScale','log')
 ylabel(ax(3),'Burst period (ms)')
-xlabel(ax(3),'\sigma_{perturbtion}')
+xlabel(ax(3),'$\sigma_{perturbation}$','interpreter','latex')
 lh = plotlib.horzline(ax(3),metrics0.burst_period);
 lh.LineStyle = '-.';
 lh.Color = 'k';
@@ -125,7 +125,7 @@ ax(3).YTick = 600:200:1400;
 ax(3).XLim(2) = max(all_sigma);
 ax(3).XTick = logspace(-4,-1,4);
 
-title(ch,'\mu_{perturb}')
+title(ch,'$\mu_{perturb}$','interpreter','latex')
 caxis([-.9 .9])
 
 ch.Position = [.2 .28 .018 .14];
@@ -406,8 +406,6 @@ axlib.label(ax(4),'d','x_offset',-.05,'y_offset',0,'font_size',24);
 
 ax(3).YLim = [600 1500];
 
-
-return
 
 
 

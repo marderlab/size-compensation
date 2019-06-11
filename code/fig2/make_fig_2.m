@@ -1,6 +1,7 @@
 
 
 close all
+clear all
 addpath('../')
 
 model_hash = '0dea7e804b9255ac7bba7df3c3b015ff';
@@ -15,10 +16,15 @@ x0 = sum(v.data.g0(2:3));
 y0 = sum(v.data.g0([1 4 5 6 8]));
 
 fig_handle= figure('outerposition',[300 300 1201 812],'PaperUnits','points','PaperSize',[1201 812]); hold on
-ax.noreg = subplot(2,3,2); hold on
-ax.flow = subplot(2,3,3); hold on
-ax.diff = subplot(2,3,5); hold on
-ax.general = subplot(2,3,6); hold on
+ax.noreg = subplot(2,3,4); hold on
+ax.flow = subplot(2,3,5); hold on
+ax.diff = subplot(2,3,6); hold on
+ax.cartoon = subplot(2,2,1); hold on
+
+
+I = imread('integral-control.png');
+figlib.showImageInAxes(ax.cartoon,I)
+
 
 v.plotBoundaries(ax.noreg)
 p = ax.noreg.Children;
@@ -213,136 +219,37 @@ title(ax.flow,'With regulation')
 
 
 
-% now we look at generalized perturbations 
-
-g0 = [379 165 2.35 .72 297 1713 .46 1370];
-
-% control -- integral controller
-x = singleCompartment.makeNeuron('controller_type','IntegralController');
-x.set('*gbar',g0)
-x.reset
-x.integrate;
-singleCompartment.configureControllers(x,5e3);
-x.t_end = 5e3;
-
-
-% measure the metrics 
-x.t_end = 20e3;
-x.dt = .1;
-x.integrate;
-V = x.integrate;
-metrics0 = xtools.V2metrics(V,'sampling_rate',1/x.dt);
-
-% make a matrix of all the gbars corresponding to the perturbations 
-N = 100;
-all_mu = linspace(-.90,.90,N); % fraction
-all_sigma = corelib.logrange(1e-3,.20,N); % fraction
-
-
-
-all_gbar = repmat(g0,N*N,1);
-
-idx = 1;
-
-for i = 1:N
-	for j = 1:N
-
-		all_gbar(idx,:) = (randn(8,1)*all_sigma(i) + all_mu(j)) + 1;
-		all_gbar(idx,:) = all_gbar(idx,:) .*g0;
-		idx = idx + 1;
-	end
-end
-
-
-
-all_gbar = abs(all_gbar);
-all_gbar(:,7) = g0(7);
-all_gbar = all_gbar';
-
-if exist('generalized_perturbations.mat','file') == 2
-
-	load('generalized_perturbations.mat','data','params')
-else
-
-	p = xgrid;
-	p.cleanup;
-	p.x = x;
-
-
-	p.sim_func = @singleCompartment.perturb.coherenceAmplitude;
-
-	parameters_to_vary = x.find('*gbar');
-
-	p.batchify(all_gbar,parameters_to_vary);
-
-
-	p.simulate;
-	p.wait;
-
-
-	[data, params] = p.gather;
-
-
-	save('generalized_perturbations.mat','data','params')
-end
-
-metrics = data{1};
-gbar = data{2};
-
-Ca_error  = data{3};
-
-% back calculate mean and std of perturbation 
-all_gbar = params./g0';
-all_gbar(7,:) = [];
-all_gbar = all_gbar - 1;
-
-all_mu = mean(all_gbar);
-all_sigma = std(all_gbar);
-
-
-
-sh = scatter(ax.general,all_sigma,metrics(1,:),34,all_mu,'filled','Marker','o');
-set(ax.general,'XScale','log')
-ylabel('Burst period (ms)')
-xlabel('\sigma_{perturbtion}')
-lh = plotlib.horzline(ax.general,metrics0.burst_period);
-lh.LineStyle = '-.';
-lh.Color = 'k';
-ch = colorbar;
-
-colormap(ax.general,(colormaps.redblue))
-
-sh.MarkerEdgeColor = [.5 .5 .5];
-
-ax.general.YTick = 600:200:1400;
-
-ax.general.XLim(2) = max(all_sigma);
-ax.general.XTick = logspace(-4,-1,4);
-
-title(ch,'\mu_{perturb}')
-ch.YLim = [-.9 .9];
-
-ch.Position = [.65 .28 .018 .14];
-
-
-
 % show example traces to understand the behaviour segmentation 
+
+ax.example(1) = subplot(4,4,3); hold on
+ax.example(2) = subplot(4,4,4); hold on
+ax.example(3) = subplot(4,4,7); hold on
+ax.example(4) = subplot(4,4,8); hold on
 
 singleCompartment.disableControllers(x);
 idx = [1 4 7 10];
 for i = 1:4
-	ax.example(i) = subplot(4,3,idx(i)); hold on
-	set(ax.example(i),'XLim',[0 1],'YLim',[-80 50])
+	set(ax.example(i),'XLim',[0 1],'YLim',[-85 50])
 	ax.example(i).Position(4) = .1;
-	if i < 4
+	if i < 3
 		ax.example(i).XColor = 'w';
 	else
-		xlabel('Time (s)')
+		time_x = xlabel('Time (s)');
 	end
 
-	ylabel(ax.example(i),'V_m (mV)')
+	if i == 3
+		ylabel_handle = ylabel(ax.example(i),'V_m (mV)');
+	end
+
 
 end
+
+for i = [2:2:4]
+	ax.example(i).YColor = 'w';
+	ax.example(i).YTickLabel = {};
+end
+
+g0 = v.data.g0;
 
 % canonical
 x.reset;
@@ -407,29 +314,33 @@ h(4).MarkerFaceColor = c(2,:);
 
 
 xlabel(ax.noreg,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-ylabel(ax.noreg,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
+ylabel(ax.noreg,'$\mathrm{\Sigma \bar{g} - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
 
 
 xlabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-ylabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
+%ylabel(ax.diff,'$\mathrm{\Sigma \bar{g} - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
 
 xlabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-ylabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{others} (\mu S/mm^2)}$','interpreter','latex')
+%ylabel(ax.flow,'$\mathrm{\Sigma \bar{g}  - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
 
 
 
-figlib.pretty('plw',1,'lw',1,'fs',19)
+figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',19)
 
 
-axlib.label(ax.example(1),'a','y_offset',.03,'font_size',26,'x_offset',-.04);
-axlib.label(ax.noreg,'b','y_offset',-.03,'font_size',26,'x_offset',-.02);
-axlib.label(ax.flow,'c','y_offset',-.03,'font_size',26,'x_offset',-.02);
-axlib.label(ax.diff,'d','y_offset',-.03,'font_size',26,'x_offset',-.02);
-axlib.label(ax.general,'e','y_offset',-.03,'font_size',26,'x_offset',-.02);
+axlib.label(ax.example(1),'b','y_offset',.03,'font_size',26,'x_offset',-.04);
+axlib.label(ax.noreg,'c','y_offset',-.03,'font_size',26,'x_offset',-.02);
+axlib.label(ax.flow,'d','y_offset',-.03,'font_size',26,'x_offset',-.02);
+axlib.label(ax.diff,'e','y_offset',-.03,'font_size',26,'x_offset',-.02);
+axlib.label(ax.cartoon,'a','y_offset',-.03,'font_size',26,'x_offset',-0);
 
-ax.general.YLim = [400 1600];
+ax.cartoon.Position = [.08 .55 .35 .35];
 
+ax.example(4).Box = 'off';
 
+for i = 3:4
+	ax.example(i).Position(2) = .6;
+end
 
-
-ch.Position = [.75 .3 .013 .12];
+time_x.Position(1) = -.2;
+ylabel_handle.Position(2) = 110;
