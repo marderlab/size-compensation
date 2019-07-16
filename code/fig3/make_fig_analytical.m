@@ -10,7 +10,7 @@ for i = 1:4
 end
 
 
-figlib.pretty('plw',1,'lw',1,'fs',14)
+figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',14)
 
 
 
@@ -98,7 +98,7 @@ all_y(rm_this) = [];
 model_hash = '0dea7e804b9255ac7bba7df3c3b015ff';
 
 
-load(['../fig3/' model_hash '_1.voronoi'],'-mat')
+load(['../fig2/' model_hash '_1.voronoi'],'-mat')
 
 v.plotBoundaries(ax(2))
 set(ax(2),'XScale','log','YScale','log')
@@ -115,7 +115,7 @@ end
 
 % plot equi-calcium line
 
-load(['../fig3/' model_hash '_calcium.voronoi'],'-mat')
+load(['../fig2/' model_hash '_calcium.voronoi'],'-mat')
 
 X = v.boundaries(1).regions.x;
 Y = v.boundaries(1).regions.y;
