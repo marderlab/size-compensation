@@ -91,14 +91,6 @@ singleCompartment.configureControllers(x);
 x.t_end = 5e3;
 
 
-
-
-
-plot(ax.noreg,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
-plot(ax.flow,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
-plot(ax.diff,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
-
-
 % now subtract one map from the other
 R0 = v0.findBoundaries;
 R = v.findBoundaries;
@@ -135,53 +127,41 @@ N = 15;
 all_x = corelib.logrange(v.x_range(1),v.x_range(2),N);
 all_y = corelib.logrange(v.y_range(1),v.y_range(2),N);
 
-xx = v.boundaries(3).regions.x;
-yy = v.boundaries(3).regions.y;
+x.t_end = 1e3;
 
+this_color = 'k';
 
 for i = 1:N
-	for j = 1:N
 
-		% which region is this point in? 
-		this_color = [];
-		for idx = 1:length(p)
-			if ~isa(p(idx),'matlab.graphics.primitive.Polygon')
-				continue
-			end
-			xx = p(idx).Shape.Vertices(:,1);
-			yy = p(idx).Shape.Vertices(:,2);
+	plot_data = struct;
+	plot_data.X = [];
+	plot_data.Y = [];
 
-			if inpolygon(all_x(i),all_y(j),xx,yy)
-				this_color = p(idx).FaceColor;
-				break
-			end
-
-		end
-
-		if isempty(this_color)
-			continue
-		end
-
-		this_color = 'k';
+	parfor j = 1:N
 
 		g = singleCompartment.perturb.scaleG(v.data.g0,all_x(i),all_y(j));
 		x.set('*gbar',g)
 		x.set('*Controller.m',g*x.AB.A)
-		x.AB.CaT.E = 30;
-		x.AB.CaS.E = 30;
+		x.set('AB.CaT.E',30);
+		x.set('AB.CaS.E',30);
 		x.reset;
-		x.t_end = 1e3;
+		
 		[~,~,C] = x.integrate;
 		C(:,7) = [];
 		g = C(:,2:2:end);
 		X = sum(g(:,[2:3]),2); 
 		Y = sum(g(:,[1 4 5 6 8]),2); 
 
-		plotlib.trajectory(ax.flow,X,Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'norm_x',false,'norm_y',false,'n_arrows',1);
-		drawnow
-
-
+		plot_data(j).X = X;
+		plot_data(j).Y = Y;
 	end
+
+	for j = 1:N
+		plotlib.trajectory(ax.flow,plot_data(j).X,plot_data(j).Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'norm_x',false,'norm_y',false,'n_arrows',1);
+		
+	end
+	drawnow
+
 end
 
 
@@ -280,7 +260,7 @@ plot(ax.example(2),time,V,'k')
 g = singleCompartment.perturb.scaleG(g0,1e3,1e4, [2 3], [1 4 5 6 8]);
 x.reset;
 x.set('*gbar',g);
-x.t_end = 10e3;
+x.t_end = 10.3e3;
 x.integrate;
 x.t_end = 2e3;
 V = x.integrate;
@@ -305,7 +285,7 @@ plot(ax.example(4),time,V,'k')
 c= lines;
 clear h
 for i = 1:4
-	h(i) = scatter(ax.example(i),.1,30,240,'MarkerEdgeAlpha',0,'MarkerFaceColor',c(5,:),'MarkerFaceAlpha',.35);
+	h(i) = scatter(ax.example(i),.1,30,300,'MarkerEdgeAlpha',1,'MarkerFaceColor',c(5,:),'MarkerFaceAlpha',.35,'MarkerEdgeColor','k');
 end
 
 h(2).MarkerFaceColor = c(1,:);
@@ -344,3 +324,10 @@ end
 
 time_x.Position(1) = -.2;
 ylabel_handle.Position(2) = 110;
+
+
+
+plot(ax.noreg,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
+plot(ax.flow,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
+plot(ax.diff,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'w--');
+

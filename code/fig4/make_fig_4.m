@@ -193,7 +193,6 @@ Y(rm_this) = [];
 
 
 
-
 % segment space
 status = singleCompartment.perturb.analyzeWithControl(x, gbar_x, gbar_y);
 x.set('*gbar',[379 165 2.35 .72 297 1713 .46 1370])
@@ -239,30 +238,44 @@ N = 12;
 all_x = corelib.logrange(v.x_range(1),v.x_range(2),N);
 all_y = corelib.logrange(v.y_range(1),v.y_range(2),N);
 
-gbar_x
-for i = 1:N
-	for j = 1:N
 
-		this_color = 'k';
+this_color = 'k';
+
+x.t_end = 1e3;
+
+for i = 1:N
+
+	plot_data = struct;
+	plot_data.X = [];
+	plot_data.Y = [];
+
+	parfor j = 1:N
 
 		g = singleCompartment.perturb.scaleG(v.data.g0,all_x(i),all_y(j),gbar_x,gbar_y);
 		x.set('*gbar',g)
 		x.set('*Controller.m',g*x.AB.A)
-		x.AB.CaT.E = 30;
-		x.AB.CaS.E = 30;
+		x.set('AB.CaT.E',30);
+		x.set('AB.CaS.E',30);
 		x.reset;
-		x.t_end = 1e3;
+		
 		[~,~,C] = x.integrate;
 		C(:,7) = [];
 		g = C(:,2:2:end);
 		X = sum(g(:,gbar_x),2); 
 		Y = sum(g(:,gbar_y),2); 
 
-		plotlib.trajectory(ax(1),X,Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'norm_x',false,'norm_y',false,'n_arrows',1);
-		drawnow
-
+		plot_data(j).X = X;
+		plot_data(j).Y = Y;
 	end
+
+	for j = 1:N
+		plotlib.trajectory(ax(1),plot_data(j).X,plot_data(j).Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'norm_x',false,'norm_y',false,'n_arrows',1);
+		
+	end
+	drawnow
+
 end
+
 
 
 
@@ -347,29 +360,42 @@ N = 12;
 all_x = corelib.logrange(v.x_range(1),v.x_range(2),N);
 all_y = corelib.logrange(v.y_range(1),v.y_range(2),N);
 
-gbar_x
+this_color = 'k';
+
+x.t_end = 1e3;
+
 for i = 1:N
-	for j = 1:N
+
+	plot_data = struct;
+	plot_data.X = [];
+	plot_data.Y = [];
+
+	parfor j = 1:N
 
 		g = singleCompartment.perturb.scaleG(v.data.g0,all_x(i),all_y(j),gbar_x,gbar_y);
 		x.set('*gbar',g)
 		x.set('*Controller.m',g*x.AB.A)
-		x.AB.CaT.E = 30;
-		x.AB.CaS.E = 30;
+		x.set('AB.CaT.E',30);
+		x.set('AB.CaS.E',30);
 		x.reset;
-		x.t_end = 1e3;
+		
 		[~,~,C] = x.integrate;
 		C(:,7) = [];
 		g = C(:,2:2:end);
 		X = sum(g(:,gbar_x),2); 
 		Y = sum(g(:,gbar_y),2); 
 
-		plotlib.trajectory(ax(2),X,Y,'Color','k','ArrowLength',.015,'LineWidth',1,'norm_x',false,'norm_y',false,'n_arrows',1);
-		drawnow
-
+		plot_data(j).X = X;
+		plot_data(j).Y = Y;
 	end
-end
 
+	for j = 1:N
+		plotlib.trajectory(ax(2),plot_data(j).X,plot_data(j).Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'norm_x',false,'norm_y',false,'n_arrows',1);
+		
+	end
+	drawnow
+
+end
 
 
 
