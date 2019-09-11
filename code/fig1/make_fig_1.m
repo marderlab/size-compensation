@@ -5,7 +5,7 @@ close all
 
 x = xolotl;
 x.add('compartment','AB','A',0.0628,'vol',.0628);
-x.AB.add('bucholtz/CalciumMech','phi',1,'tau_Ca',500);
+x.AB.add('buchholtz/CalciumMech','phi',1,'tau_Ca',500);
 
 x.AB.add('prinz/NaV','gbar',620);
 x.AB.add('prinz/CaS','gbar',16);
@@ -77,7 +77,7 @@ ax(2).Position(4) = .075;
 % measure calcium and firing rate everywhere in a grid
 
 if exist('Ca_grid.mat','file')
-	load('Ca_grid.mat','A','g','Ca','firing_rate')
+	load('Ca_grid.mat','all_A','g','Ca','firing_rate')
 else
 
 	gridsize = 100;
@@ -93,6 +93,9 @@ else
 	all_g_CaS = NaN(gridsize);
 	all_A = NaN(gridsize);
 
+
+	firing_rate = NaN(gridsize);
+	Ca = NaN(gridsize);
 
 	for i = 1:gridsize
 		for j = 1:gridsize
@@ -110,31 +113,62 @@ else
 	all_gbar_CaS = all_g_CaS./all_A;
 	all_gbar_Kd = all_g_Kd./all_A;
 
-
-	p = xgrid;
-	p.cleanup;
-	p.x = x;
-	p.sim_func = @measureCalcium;
-	parameters_to_vary = {'AB.A','AB.NaV.gbar','AB.CaS.gbar','AB.Kd.gbar'};
-	p.batchify([all_A(:) all_gbar_NaV(:) all_gbar_CaS(:) all_gbar_Kd(:)]',parameters_to_vary);
-
-	p.simulate;
-	p.wait()
+	x.dt = .1;
+	x.sim_dt = .1;
+	x.t_end = 10e3;
+	x.closed_loop = true;
 
 
-	[sim_data,metadata] = p.gather;
-	Ca = sim_data{1};
-	firing_rate = sim_data{2};
-	A = sim_data{3};
-	g = sim_data{4};
-	g = sum(g([1:2 4],:));
+	parfor i = 1:gridsize
+		disp(i)
+		for j = 1:gridsize
+			% set params
+			x.set('AB.A',all_A(i,j));
+			x.set('AB.vol',all_A(i,j));
+			x.set('AB.NaV.gbar',all_gbar_NaV(i,j));
+			x.set('AB.Kd.gbar',all_gbar_Kd(i,j));
+			x.set('AB.CaS.gbar',all_gbar_CaS(i,j));
 
-	save('Ca_grid.mat','A','g','Ca','firing_rate')
+			% simulate
+			x.reset;
+			x.integrate;
+			V = x.integrate;
+
+
+			firing_rate(i,j) = xtools.findNSpikes(V)/(x.t_end*1e-3);
+			Ca(i,j) = x.AB.Ca_average;
+
+		end
+	end
+
+
+
+	% p = xgrid;
+	% p.cleanup;
+	% p.x = x;
+	% p.sim_func = @measureCalcium;
+	% parameters_to_vary = {'AB.A','AB.NaV.gbar','AB.CaS.gbar','AB.Kd.gbar'};
+	% p.batchify([all_A(:) all_gbar_NaV(:) all_gbar_CaS(:) all_gbar_Kd(:)]',parameters_to_vary);
+
+	% p.simulate;
+	% p.wait()
+
+
+	% [sim_data,metadata] = p.gather;
+	% Ca = sim_data{1};
+	% firing_rate = sim_data{2};
+	% A = sim_data{3};
+	% g = sim_data{4};
+	% g = sum(g([1:2 4],:));
+
+	g = (all_g_CaS + all_g_NaV + all_g_Kd);
+	save('Ca_grid.mat','all_A','g','Ca','firing_rate')
 
 end
 
+A = all_A(:);
 
-scatter(ax(3),A,g,63,firing_rate,'filled','Marker','s')
+scatter(ax(3),A,g(:),63,firing_rate(:),'filled','Marker','s')
 set(ax(3),'YScale','log','XScale','log')
 ch = colorbar(ax(3));
 
@@ -165,7 +199,7 @@ plotlib.trajectory(ax(3),xx,yy,'n_arrows',3,'ArrowLength',.03,'norm_y',false,'no
 
 
 for show_here = 5:6
-	scatter(ax(show_here),A,g,63,log2(Ca./data.Ca_average),'filled','Marker','s')
+	scatter(ax(show_here),A,g(:),63,log2(Ca(:)./data.Ca_average),'filled','Marker','s')
 	set(ax(show_here),'YScale','log','XScale','log')
 	ch = colorbar(ax(show_here));
 	colormap(ax(show_here),colormaps.redblue);
