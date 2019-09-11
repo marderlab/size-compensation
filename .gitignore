@@ -1,7 +1,6 @@
 *html/
 *.calcium_nullclines
 *.perturbation_map
-*.voronoi
 *.mat
 *.DS_Store
 *.eps
