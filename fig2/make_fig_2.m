@@ -298,11 +298,7 @@ ylabel(ax.noreg,'$\mathrm{\Sigma \bar{g} - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','
 
 
 xlabel(ax.diff,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-%ylabel(ax.diff,'$\mathrm{\Sigma \bar{g} - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-
 xlabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-%ylabel(ax.flow,'$\mathrm{\Sigma \bar{g}  - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
-
 
 
 figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',19)

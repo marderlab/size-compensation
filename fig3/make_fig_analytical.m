@@ -137,7 +137,7 @@ set(ax(1),'XLim',x_range,'XTick',[10 100 1e3],'YLim',[-60 -0])
 
 plot(ax(2),all_x,all_y,'k','LineWidth',1.5)
 xlabel(ax(2),'$\Sigma \bar{g}_{Ca} (\mu S/mm^2)$','interpreter','latex')
-ylabel(ax(2),'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
+ylabel(ax(2),'$\mathrm{\Sigma \bar{g} - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
 
 plot(ax(2),[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
 
@@ -273,14 +273,9 @@ else
 end
 
 
-% plot(ax(5),show_at_these_y,diff(all_spiketimes')*.05,'k.')
-% xlabel(ax(5),'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
-% ylabel(ax(5),'ISI (ms)')
-% set(ax(5),'YScale','log','XLim',[min(show_at_these_y) max(show_at_these_y)])
-% set(ax(5),'XScale','log','XLim',[min(all_y),max(all_y)])
 
 plot(ax(4),show_at_these_y,all_V,'.','MarkerSize',1,'Color',[.5 .5 .5])
-xlabel(ax(4),'$\Sigma \bar{g}_{others} (\mu S/mm^2)$','interpreter','latex')
+xlabel(ax(4),'$\mathrm{\Sigma \bar{g} - \Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','latex')
 ylabel(ax(4),'$V_m (mV)$','interpreter','latex')
 set(ax(4),'YScale','linear','XLim',[min(show_at_these_y) max(show_at_these_y)])
 
