@@ -1,6 +1,7 @@
 
 addpath('../')
 
+clearvars
 close all
 
 x = xolotl;
@@ -142,25 +143,6 @@ else
 	end
 
 
-
-	% p = xgrid;
-	% p.cleanup;
-	% p.x = x;
-	% p.sim_func = @measureCalcium;
-	% parameters_to_vary = {'AB.A','AB.NaV.gbar','AB.CaS.gbar','AB.Kd.gbar'};
-	% p.batchify([all_A(:) all_gbar_NaV(:) all_gbar_CaS(:) all_gbar_Kd(:)]',parameters_to_vary);
-
-	% p.simulate;
-	% p.wait()
-
-
-	% [sim_data,metadata] = p.gather;
-	% Ca = sim_data{1};
-	% firing_rate = sim_data{2};
-	% A = sim_data{3};
-	% g = sim_data{4};
-	% g = sum(g([1:2 4],:));
-
 	g = (all_g_CaS + all_g_NaV + all_g_Kd);
 	save('Ca_grid.mat','all_A','g','Ca','firing_rate')
 
@@ -188,15 +170,22 @@ set(ch,'YTick',30:5:50,'YTickLabel',{'Silent','35','40','45','50'})
 title(ch,'f (Hz)')
 
 xlabel(ax(3),'Area (mm^2)')
-ylabel(ax(3),'\Sigma g (uS)')
+ylabel(ax(3),'\Sigma g (\muS)')
 
 
 % draw an arrow on it
 xx = linspace(data.A0/10,data.A0*2,1e3);
 yy = (data.g0_HH/10)*(1+0*xx);
-plotlib.trajectory(ax(3),xx,yy,'n_arrows',3,'ArrowLength',.03,'norm_y',false,'norm_x',false,'LineWidth',1.5);
+plotlib.trajectory(ax(3),xx,yy,'n_arrows',2,'ArrowLength',.03,'norm_y',false,'norm_x',false,'LineWidth',1.5);
+
+X = data.A0/10;
+Y = data.g0_HH/10;
+
+ph = plot(X,Y,'ko');
+ph.MarkerFaceColor = 'k';
 
 
+ph = plot(data.A0*2,data.g0_HH/10,'ko');
 
 for show_here = 5:6
 	scatter(ax(show_here),A,g(:),63,log2(Ca(:)./data.Ca_average),'filled','Marker','s')
@@ -211,7 +200,7 @@ for show_here = 5:6
 	title(ch,'<[Ca^{2+}]>')
 
 	xlabel(ax(show_here),'Area (mm^2)')
-	ylabel(ax(show_here),'\Sigma g (uS)')
+	ylabel(ax(show_here),'\Sigma g (\muS)')
 
 	if show_here == 5
 		ch_Ca = ch;
@@ -339,3 +328,9 @@ axlib.label(ax(6),'e','x_offset',-.01,'y_offset',-.01);
 title(ax(2),'Large cell (silent)','FontWeight','normal')
 title(ax(1),'Small cell (functional)','FontWeight','normal')
 ax(4).Position = [.55 .38 .34 .25];
+
+
+
+% add some annotations
+a(1) = annotation('textarrow',[.222 .222],[.55  .5],'String','Small cell');
+a(2) = annotation('textarrow',[.335 .335],[.44  .48],'String','Large cell');
