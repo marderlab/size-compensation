@@ -1,7 +1,7 @@
 
 
 close all
-clear all
+clearvars
 addpath('../')
 
 model_hash = '0dea7e804b9255ac7bba7df3c3b015ff';
@@ -331,3 +331,5 @@ plot(ax.noreg,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
 plot(ax.flow,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'k--');
 plot(ax.diff,[v.x_range(1) v.x_range(2)], [v.y_range(1) v.y_range(2)],'w--');
 
+
+th = text(5,150,'⟵ Size change ⟶ ','Rotation',45,'Parent',ax.noreg,'FontSize',14);
