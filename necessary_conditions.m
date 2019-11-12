@@ -61,7 +61,7 @@ else
 			metrics = xtools.V2metrics(V,'sampling_rate',1/x.dt);
 
 			all_burst_periods(i,j) = metrics.burst_period;
-			all_duty_cycles(i,j) = metrics..duty_cycle_mean;
+			all_duty_cycles(i,j) = metrics.duty_cycle_mean;
 
 		end
 	end
