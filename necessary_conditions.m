@@ -32,29 +32,47 @@ end
 % now compute the calcium as we scale all g
 
 n_models = size(all_g,1);
-scale_factor = logspace(-1,1,100);
+scale_factor = logspace(-1,.5,202);
 all_Ca = NaN(n_models,length(scale_factor));
+all_burst_periods = NaN(n_models,length(scale_factor));
+all_duty_cycles = NaN(n_models,length(scale_factor));
 
 x = xolotl.examples.BurstingNeuron();
 x.t_end = 10e3;
 
-for i = 1:n_models
+if exist('bursting_neurons_all_Ca.mat','file') == 2
+	load('bursting_neurons_all_Ca.mat','all_Ca')
+else
 
-	corelib.textbar(i,n_models)
+	for i = 1:n_models
 
-	parfor j = 1:length(scale_factor)
+		corelib.textbar(i,n_models)
 
-		x.reset;
-		x.set('*gbar',all_g(i,:)*scale_factor(j));
-		x.integrate;
-		x.integrate;
+		parfor j = 1:length(scale_factor)
 
-		all_Ca(i,j) = x.AB.Ca_average;
+			x.reset;
+			x.set('*gbar',all_g(i,:)*scale_factor(j));
+			x.integrate;
+			V = x.integrate;
+
+			all_Ca(i,j) = x.AB.Ca_average;
 
 
+			metrics = xtools.V2metrics(V,'sampling_rate',1/x.dt);
 
+			all_burst_periods(i,j) = metrics.burst_period;
+			all_duty_cycles(i,j) = metrics..duty_cycle_mean;
+
+		end
 	end
+
+	save('bursting_neurons_all_Ca.mat','all_Ca')
 end
 
 
+% normalize by target
+target_Ca = all_Ca(:,51);
+for i = 1:n_models
+	all_Ca(i,:) = all_Ca(i,:)/target_Ca(i);
+end
 
