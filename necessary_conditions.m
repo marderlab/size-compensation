@@ -45,7 +45,7 @@ for i = 1:n_models
 	parfor j = 1:length(scale_factor)
 
 		x.reset;
-		x.set('*gbar',all_g(i,:)*scale_factor(i));
+		x.set('*gbar',all_g(i,:)*scale_factor(j));
 		x.integrate;
 		x.integrate;
 
