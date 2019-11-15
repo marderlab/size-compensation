@@ -19,8 +19,8 @@ controllers.configure(x)
 % OK, now we will vary the noise in the initial conditions and 
 % see how robust open loop control is to this 
 
-N = 10;
-M = 15; % number of noise levels
+N = 100;
+M = 50; % number of noise levels
 noise_levels = repmat(logspace(-2,2,M),N,1);
 noise_levels = noise_levels(:);
 
