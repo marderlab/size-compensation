@@ -32,6 +32,10 @@ else
 end
 
 
+
+
+
+
 % now compute the calcium as we scale all g
 
 n_models = size(all_g,1);
@@ -112,13 +116,29 @@ end
 
 
 
-figure('outerposition',[300 300 1200 1110],'PaperUnits','points','PaperSize',[1200 1110]); hold on
+figure('outerposition',[300 300 1200 1301],'PaperUnits','points','PaperSize',[1200 1301]); hold on
 clear ax
 
 
+% show the illustratvie graph
+ax(1) = subplot(3,3,1); hold on
+
+
+plotlib.trajectory(linspace(1,2,100),linspace(1,2,100),'n_arrows',1);
+xlabel('g_1')
+ylabel('g_2')
+plot([1,2],[1,2],'ko','MarkerFaceColor','k')
+set(gca,'XLim',[0.5 2.5],'YLim',[0.5 2.5])
+text(2.05,2.15,'g(t+\Deltat)','FontSize',20);
+text(1,.9,'g(t)','FontSize',20);
+plot([1 2],[1 1],'k:')
+plot([2 2],[1 2],'k:')
+ax(1).XTick = [];
+ax(1).YTick = [];
+
 % show two example traces first
 show_this = 148;
-ax(1) = subplot(3,2,1); hold on
+ax(2) = subplot(3,3,2); hold on
 plot(scale_factor,all_Ca(show_this,:),'Color',[.5 .5 .5],'LineWidth',4)
 plotlib.horzline(1,'k:');
 plotlib.vertline(1,'k:');
@@ -130,10 +150,11 @@ idx = fixed_point_locs(show_this,:) == 1;
 scatter(scale_factor(idx),all_Ca(show_this,idx),64,'MarkerFaceColor','w','MarkerEdgeColor','k','LineWidth',2)
 
 a = annotation('textarrow',[0.3 0.5],[0.6 0.5],'String','Single stable fixed point');
-a.Position =  [0.1976 0.8447 0.0257 -0.0577];
+a.Position = [0.49    0.7441   -0.0116    0.0207];
 a.FontSize = 14;
 
-ax(2) = subplot(3,2,2); hold on
+
+ax(3) = subplot(3,3,3); hold on
 show_this = 184;
 plot(scale_factor,all_Ca(show_this,:),'Color',[.5 .5 .5],'LineWidth',4)
 plotlib.horzline(1,'k:');
@@ -143,9 +164,10 @@ scatter(scale_factor(idx),all_Ca(show_this,idx),64,'MarkerFaceColor','w','Marker
 xlabel('Scale factor on conductances')
 ylabel('<Ca>/Ca_T')
 
-a = annotation('textarrow',[0.3 0.5],[0.6 0.5],'String','Multiple stable fixed points');
-a.Position = [.7 .8 -.03 .05];
+a = annotation('textarrow',[0.3 0.5],[0.6 0.5],'String',['Multiple stable'  newline  'fixed points']);
+a.Position = [0.775    0.8   -0.0187    0.0533];
 a.FontSize = 14;
+
 
 
 a = annotation('arrow',[0.3 0.5],[0.6 0.5]);
@@ -153,7 +175,7 @@ a.Position = [0.7801    0.8    0.0704    0.05];
 
 
 
-ax(3) = subplot(3,3,4); hold on
+ax(4) = subplot(3,3,4); hold on
 plotlib.errorShade(scale_factor,mean(all_Ca),std(all_Ca),'Color',[.5 .5 .5]);
 
 xlabel('Scale factor on conductances')
@@ -161,7 +183,7 @@ ylabel('<Ca>/Ca_T')
 
 
 
-ax(4) = subplot(3,3,5); hold on
+ax(5) = subplot(3,3,5); hold on
 plot(1:length(n_models_with_n_crossings),n_models_with_n_crossings,'ko-')
 set(gca,'XLim',[0 5])
 xlabel('# stable fixed points')
@@ -170,7 +192,7 @@ ylabel('Cumulative probability')
 
 % plot duty cycle and period for all stable fixed points
 
-ax(5) = subplot(3,3,6); hold on
+ax(6) = subplot(3,3,6); hold on
 scatter(all_burst_periods(:),all_Ca(:),15,'MarkerEdgeColor',[1 0 0],'MarkerEdgeAlpha',.1,'Marker','.')
 set(gca,'XScale','log','YScale','log');
 xlabel('Burst period (norm)')
@@ -179,7 +201,7 @@ plotlib.horzline(1,'Color','k');
 plotlib.vertline(1,'Color','k');
 
 
-ax(6) = subplot(3,3,7); hold on
+ax(7) = subplot(3,3,7); hold on
 scatter(all_duty_cycles(:),all_Ca(:),15,'MarkerEdgeColor',[0 0 1],'MarkerEdgeAlpha',.1,'Marker','.')
 set(gca,'XScale','log','YScale','log')
 xlabel('Duty cycle (norm)')
@@ -190,7 +212,7 @@ plotlib.vertline(1,'Color','k');
 
 
 
-ax(7) = subplot(3,3,8); hold on
+ax(8) = subplot(3,3,8); hold on
 scatter(all_burst_periods(fixed_point_locs == 1),all_duty_cycles(fixed_point_locs == 1),24,'MarkerFaceColor','k','MarkerFaceAlpha',.1,'MarkerEdgeColor','k','MarkerEdgeAlpha',.1)
 xlabel('Burst period (norm)')
 ylabel('Duty cycle (norm)')
@@ -199,7 +221,7 @@ plotlib.vertline(1,'k:');
 set(gca,'XColor','r')
 set(gca,'YColor','b')
 
-ax(8) = subplot(3,3,9); hold on
+ax(9) = subplot(3,3,9); hold on
 % compute error at all stable fixed points
 error_T = abs(all_burst_periods(fixed_point_locs == 1) - 1);
 error_DC = abs(all_duty_cycles(fixed_point_locs == 1) - 1);
@@ -219,13 +241,16 @@ xlabel('Fractional error at fixed point')
 legend({'Burst period','Duty cycle'},'Location','southeast')
 
 
-figlib.pretty('FontSize',14)
+figlib.pretty('FontSize',16)
 
-set(ax(3),'XScale','log','YScale','log','XLim',[scale_factor(1) scale_factor(end)])
-plotlib.horzline(ax(3),1,'k:');
-plotlib.vertline(ax(3),1,'k:');
-ax(4).YLim = [0 1];
+set(ax(4),'XScale','log','YScale','log','XLim',[scale_factor(1) scale_factor(end)])
+plotlib.horzline(ax(4),1,'k:');
+plotlib.vertline(ax(4),1,'k:');
+ax(5).YLim = [0 1];
 
-for i = 3:8
+for i = 1:9
 	axis(ax(i),'square')
 end
+
+
+figlib.label('x_offset',.01,'font_size',28)
