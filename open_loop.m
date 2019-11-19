@@ -5,7 +5,17 @@
 
 addpath(pwd)
 
-x = xolotl.examples.BurstingNeuron;
+x = xolotl.examples.BurstingNeuron('CalciumMech','buchholtz');
+
+
+figure('outerposition',[300 300 901 1200],'PaperUnits','points','PaperSize',[901 1200]); hold on
+subplot(4,2,1); hold on
+x.t_end = 3e3;
+V = x.integrate;
+
+time = (1:length(V))*1e-3*(x.dt);
+plot(time,V,'k')
+
 
 channels = x.AB.find('conductance');
 for i = 1:length(channels)
@@ -13,6 +23,51 @@ for i = 1:length(channels)
 end
 
 controllers.configure(x)
+
+
+x.AB.add('LinearGrowth','rate',1e-6)
+%x.AB.add('LinearGrowth','rate',1.9e-7)
+
+x.set('*start',1e6)
+x.set('*stop',9e7)
+
+x.t_end = 500e3;
+x.output_type = 1;
+x.dt = 10;
+data = x.integrate;
+
+A = data.AB.LinearGrowth;
+
+time = (1:length(A))*x.dt*1e-3;
+
+
+subplot(4,1,2); hold on
+plot(time,A,'k')
+ylabel('Area (mm^2)')
+
+subplot(4,1,3); hold on
+plot(time,data.AB.NaV.OpenLoopController(:,2))
+ylabel('g_{NaV}')
+set(gca,'YLim',[900 1100])
+
+
+x.t_end = 3e3;
+x.dt = .1;
+x.output_type = 0;
+V = x.integrate;
+time = (1:length(V))*1e-3*(x.dt);
+subplot(4,2,8); hold on
+plot(time,V,'r')
+
+
+
+figlib.pretty('PlotLineWidth',1)
+
+
+
+
+
+return
 
 
 

@@ -53,8 +53,14 @@ public:
     int getFullState(double * cont_state, int idx);
     double getState(int);
 
+    string getClass(void);
+
 };
 
+
+string ExpGrowth::getClass() {
+    return "ExpGrowth";
+}
 
 double ExpGrowth::getState(int idx) {
     if (idx == 1) {return comp->A;}
@@ -104,7 +110,7 @@ void ExpGrowth::integrate(void) {
     // since that is a derived property 
     for (int i = 0; i < comp->n_cond; i ++) {
         cond_pointer = comp->getConductancePointer(i);
-        cond_pointer->gbar_next = (cond_pointer->gbar_next)*old_A/(comp->A);
+        cond_pointer->gbar = (cond_pointer->gbar)*old_A/(comp->A);
     }
 
 
@@ -112,8 +118,7 @@ void ExpGrowth::integrate(void) {
 
 
 
-void ExpGrowth::checkSolvers(int k)
-{
+void ExpGrowth::checkSolvers(int k) {
     if (k == 0){
         return;
     } else {

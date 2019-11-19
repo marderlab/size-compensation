@@ -27,17 +27,23 @@ public:
     double start = 0;
     double stop = std::numeric_limits<double>::infinity();
 
+    // stop growth when this area is reached
+    double area_max = std::numeric_limits<double>::infinity();
+
     // specify parameters + initial conditions for 
     // mechanism that controls a conductance 
-    LinearGrowth(double rate_, double start_, double stop_)
+    LinearGrowth(double rate_, double start_, double stop_, double area_max_)
     {
         rate = rate_;
         start = start_;
         stop = stop_;
 
+        area_max = area_max_;
+
         if (isnan(rate)) {rate = 0;}
         if (isnan(start)) {start = 0;}
         if (isnan(stop)) {stop = std::numeric_limits<double>::infinity();}
+        if (isnan(area_max)) {area_max = std::numeric_limits<double>::infinity();}
     }
 
     
@@ -52,8 +58,16 @@ public:
     int getFullStateSize(void);
     int getFullState(double * cont_state, int idx);
     double getState(int);
+    
+
+    string getClass(void);
 
 };
+
+
+string LinearGrowth::getClass(void) {
+    return "LinearGrowth";
+}
 
 
 double LinearGrowth::getState(int idx) {
@@ -96,6 +110,8 @@ void LinearGrowth::integrate(void) {
     if (step_counter > stop) {return;}
     if (rate == 0) {return;}
 
+    if (comp->A > area_max) {return;}
+
     double old_A =  comp->A;
     comp->A += rate*dt;
     comp->vol += rate*dt;
@@ -104,7 +120,7 @@ void LinearGrowth::integrate(void) {
     // since that is a derived property 
     for (int i = 0; i < comp->n_cond; i ++) {
         cond_pointer = comp->getConductancePointer(i);
-        cond_pointer->gbar_next = (cond_pointer->gbar_next)*old_A/(comp->A);
+        cond_pointer->gbar = (cond_pointer->gbar)*old_A/(comp->A);
     }
 
 

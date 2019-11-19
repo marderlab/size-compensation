@@ -14,7 +14,7 @@
 class OpenLoopController: public mechanism {
 
 protected:
-    bool converged = false;
+    int step_counter = 0;
 public:
     // timescales
     double tau_m = std::numeric_limits<double>::infinity();
@@ -26,9 +26,17 @@ public:
     // area of the container this is in
     double container_A;
 
+
+    double stop = std::numeric_limits<double>::infinity();
+    double start = 0;
+
+    // stop when we get to this area
+    double area_max = std::numeric_limits<double>::infinity();
+
+
     // specify parameters + initial conditions for
     // mechanism that controls a conductance
-    OpenLoopController(double tau_m_, double tau_g_, double m_)
+    OpenLoopController(double tau_m_, double tau_g_, double m_, double start_, double stop_, double area_max_)
     {
 
         tau_m = tau_m_;
@@ -36,8 +44,14 @@ public:
         m = m_;
 
 
-        // turn it on
-        converged = false;
+        area_max = area_max_;
+
+        start = start_;
+        stop = stop_;
+
+        if (isnan(start)) {start = 0;}
+        if (isnan(stop)) {stop = std::numeric_limits<double>::infinity();}
+
 
         if (tau_g<=0) {mexErrMsgTxt("[OpenLoopController] tau_g must be > 0. Perhaps you meant to set it to Inf?\n");}
     }
@@ -129,34 +143,33 @@ void OpenLoopController::connect(synapse* syn_) {
 
 void OpenLoopController::integrate(void) {
 
-        // if (converged) {return;}
+
+    step_counter++;
 
 
-        // // when target is reach, stop immediately 
-        // if ((channel->container)->Ca_target < (channel->container)->Ca) {
-        //     converged = true;
-        //     mexPrintf("model converged\n");
-        // }
-
-        
+    if ((channel->container)->A > area_max) {return;}
+    if (step_counter < start) {return;}
+    if (step_counter > stop) {return;}
 
 
-        // integrate mRNA
-        m += (dt/tau_m);
 
-        // mRNA levels below zero don't make any sense
-        if (m < 0) {m = 0;}
+    container_A  = (channel->container)->A;
 
-        // copy the protein levels from this channel
-        double gdot = ((dt/tau_g)*(m - channel->gbar*container_A));
+    // integrate mRNA
+    m += (dt/tau_m);
 
-        // make sure it doesn't go below zero
-        if (channel->gbar_next + gdot < 0) {
-            channel->gbar_next = 0;
-        } else {
-            channel->gbar_next += gdot/container_A;
-        }
+    // mRNA levels below zero don't make any sense
+    if (m < 0) {m = 0;}
 
+    // copy the protein levels from this channel
+    double gdot = ((dt/tau_g)*(m - channel->gbar*container_A));
+
+    // make sure it doesn't go below zero
+    if (channel->gbar + gdot < 0) {
+        channel->gbar = 0;
+    } else {
+        channel->gbar += gdot/container_A;
+    }
 
 }
 

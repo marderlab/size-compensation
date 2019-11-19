@@ -1,3 +1,4 @@
+*.cache
 *html/
 *.calcium_nullclines
 *.perturbation_map
