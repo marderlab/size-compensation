@@ -149,22 +149,20 @@ end
 set(ch_f,'YTick',30:5:50,'YTickLabel',{'Silent','35','40','45','50'})
 title(ch_f,'f (Hz)')
 
-for i = [1 3 4 6]
+for i = [1 3 5 6]
 	xlabel(ax(i),'Area (mm^2)')
 	ylabel(ax(i),'\Sigma g (\muS)')
 end
 
 % now show the calcium everywhere
 
-
-
-scatter(ax(4),A,g(:),63,log2(Ca(:)./data.Ca_average),'filled','Marker','s')
-set(ax(4),'YScale','log','XScale','log')
-ch_Ca = colorbar(ax(4));
-colormap(ax(4),colormaps.redblue);
-caxis(ax(4),[-6 6])
-plot(ax(4),x_range,y_range,'k:');
-axis(ax(4),'square');
+scatter(ax(5),A,g(:),63,log2(Ca(:)./data.Ca_average),'filled','Marker','s')
+set(ax(5),'YScale','log','XScale','log')
+ch_Ca = colorbar(ax(5));
+colormap(ax(5),colormaps.redblue);
+caxis(ax(5),[-6 6])
+plot(ax(5),x_range,y_range,'k:');
+axis(ax(5),'square');
 
 set(ch_Ca,'YTick',[-6:3:6],'YTickLabel',{'1/64','1/8', 'Target','8X','64X'});
 title(ch_Ca,'<[Ca^{2+}]>')
@@ -200,7 +198,7 @@ xopen.set('*tau_g',10e3)
 xopen.snapshot('small');
 
 % indicate first point on all plots
-for i = [1 3 4 6]
+for i = [1 3 5 6]
 	ph = plot(ax(i),data.A0/10,sum(xopen.get('*gbar'))*xopen.AB.A,'ko');
 	ph.MarkerFaceColor = 'k';
 end
@@ -287,7 +285,7 @@ end
 
 
 
-for i = [1 3 4 6]
+for i = [1 3 5 6]
 	ax(i).XLim = [x_range(1)*.8 x_range(2)*1.2];
 	ax(i).YLim = [y_range(1)*.8 y_range(2)*1.2];
 	ax(i).XTick = [1e-3 1e-2 1e-1];
@@ -304,7 +302,7 @@ end
 
 
 ch_f.Position = [.3 .6 .01 .1];
-ch_Ca.Position = [.34 .12 .01 .1];
+ch_Ca.Position = [.62 .12 .01 .1];
 
 
 
@@ -312,7 +310,7 @@ I = imread('open_loop.png');
 figlib.showImageInAxes(ax(2),I)
 
 I = imread('closed_loop.png');
-figlib.showImageInAxes(ax(5),I)
+figlib.showImageInAxes(ax(4),I)
 
 
 figlib.label('x_offset',.01,'font_size',28)
