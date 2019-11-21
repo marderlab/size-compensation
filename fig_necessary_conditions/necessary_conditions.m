@@ -124,7 +124,7 @@ clear ax
 ax(1) = subplot(3,3,1); hold on
 
 
-plotlib.trajectory(linspace(1,2,100),linspace(1,2,100),'n_arrows',1);
+plotlib.trajectory(linspace(1,2,100),linspace(1,2,100),'NArrows',1);
 xlabel('g_1')
 ylabel('g_2')
 plot([1,2],[1,2],'ko','MarkerFaceColor','k')
@@ -254,3 +254,40 @@ end
 
 
 figlib.label('x_offset',.01,'font_size',28)
+
+
+
+
+
+
+return
+
+% how do we pick neuron models so that we get only one fixed point? 
+figure('outerposition',[300 300 1200 600],'PaperUnits','points','PaperSize',[1200 600]); hold on
+
+for i = 1:8
+	subplot(2,4,i); hold on
+
+	this_g = all_g(:,i);
+
+	bin_edges = linspace(min(this_g),max(this_g),30);
+	bin_centers = bin_edges(1:end-1) + mean(diff(bin_edges))/2;
+
+	YM = NaN(length(bin_edges)-1,1);
+	YS = YM;
+
+
+	for j = 1:length(YM)
+
+		this  = n_crossings(this_g>bin_edges(j) & this_g<bin_edges(j+1));
+		YM(j) = mean(this);
+		YS(j) = std(this);
+
+	end
+
+	rm_this = isnan(YM);
+
+
+	plotlib.errorShade(bin_centers(~rm_this),YM(~rm_this),YS(~rm_this))
+
+end

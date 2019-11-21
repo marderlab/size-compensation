@@ -154,6 +154,7 @@ for i = [1 3 5 6]
 	ylabel(ax(i),'\Sigma g (\muS)')
 end
 
+
 % now show the calcium everywhere
 
 scatter(ax(5),A,g(:),63,log2(Ca(:)./data.Ca_average),'filled','Marker','s')
@@ -203,6 +204,18 @@ for i = [1 3 5 6]
 	ph.MarkerFaceColor = 'k';
 end
 
+
+% draw arrows on the first plot
+xx = linspace(data.A0/10, data.A0*2,2);
+yy = xx*0 + sum(xopen.get('*gbar'))*xopen.AB.A;
+plot(ax(1),xx,yy,'k--');
+
+f = @(A) sum(x.get('*gbar'))*A;
+yy = linspace(f(data.A0/10),f(data.A0*2),2);
+xx = yy*0+data.A0*2;
+
+plot(ax(1),xx,yy,'k--');
+plot(ax(1),xx(end),yy(end),'ko')
 
 
 for i = 1:length(growth_rates)
