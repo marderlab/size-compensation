@@ -5,7 +5,7 @@
 
 addpath(pwd)
 
-x = xolotl.examples.BurstingNeuron('CalciumMech','buchholtz');
+x = xolotl.examples.neurons.BurstingNeuron('CalciumMech','buchholtz');
 
 
 figure('outerposition',[300 300 901 1200],'PaperUnits','points','PaperSize',[901 1200]); hold on

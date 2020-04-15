@@ -4,7 +4,7 @@
 % The point of this figure is to show that activity-dependent feedback regulation on the conductances is useful, in that you don't need to fine-tune the growth rate. In fact, it works for any growth rate. 
 
 
-addpath('../')
+addpath('./src/')
 
 clearvars
 close all
@@ -37,11 +37,13 @@ y_range = [data.g0_HH/100 data.g0_HH*10];
 
 
 
-figure('outerposition',[300 300 1555 900],'PaperUnits','points','PaperSize',[1555 900]); hold on
+figure('outerposition',[300 300 1555 1111],'PaperUnits','points','PaperSize',[1555 1111]); hold on
 clear ax
-for i = 6:-1:1
-	ax(i) = subplot(2,3,i); hold on
+for i = 9:-1:4
+	ax(i-3) = subplot(3,3,i); hold on
 end
+
+ax_hero = subplot(3,3,1:3); hold on
 
 figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',15)
 
@@ -51,8 +53,8 @@ figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',15)
 
 % measure calcium and firing rate everywhere in a grid
 
-if exist('Ca_grid.mat','file') == 2
-	load('Ca_grid.mat','all_A','g','Ca','firing_rate')
+if exist('cache/Ca_grid.mat','file') == 2
+	load('cache/Ca_grid.mat','all_A','g','Ca','firing_rate')
 else
 
 	gridsize = 100;
@@ -118,7 +120,7 @@ else
 
 
 	g = (all_g_CaS + all_g_NaV + all_g_Kd);
-	save('Ca_grid.mat','all_A','g','Ca','firing_rate')
+	save('cache/Ca_grid.mat','all_A','g','Ca','firing_rate')
 
 end
 
@@ -149,7 +151,7 @@ end
 set(ch_f,'YTick',30:5:50,'YTickLabel',{'Silent','35','40','45','50'})
 title(ch_f,'f (Hz)')
 
-for i = [1 3 5 6]
+for i = [1 3 4 6]
 	xlabel(ax(i),'Area (mm^2)')
 	ylabel(ax(i),'\Sigma g (\muS)')
 end
@@ -157,13 +159,13 @@ end
 
 % now show the calcium everywhere
 
-scatter(ax(5),A,g(:),63,log2(Ca(:)./data.Ca_average),'filled','Marker','s')
-set(ax(5),'YScale','log','XScale','log')
-ch_Ca = colorbar(ax(5));
-colormap(ax(5),colormaps.redblue);
-caxis(ax(5),[-6 6])
-plot(ax(5),x_range,y_range,'k:');
-axis(ax(5),'square');
+scatter(ax(4),A,g(:),63,log2(Ca(:)./data.Ca_average),'filled','Marker','s')
+set(ax(4),'YScale','log','XScale','log')
+ch_Ca = colorbar(ax(4));
+colormap(ax(4),colormaps.redblue);
+caxis(ax(4),[-6 6])
+plot(ax(4),x_range,y_range,'k:');
+axis(ax(4),'square');
 
 set(ch_Ca,'YTick',[-6:3:6],'YTickLabel',{'1/64','1/8', 'Target','8X','64X'});
 title(ch_Ca,'<[Ca^{2+}]>')
@@ -199,7 +201,7 @@ xopen.set('*tau_g',10e3)
 xopen.snapshot('small');
 
 % indicate first point on all plots
-for i = [1 3 5 6]
+for i = [1 3 4 6]
 	ph = plot(ax(i),data.A0/10,sum(xopen.get('*gbar'))*xopen.AB.A,'ko');
 	ph.MarkerFaceColor = 'k';
 end
@@ -298,7 +300,7 @@ end
 
 
 
-for i = [1 3 5 6]
+for i = [1 3 4 6]
 	ax(i).XLim = [x_range(1)*.8 x_range(2)*1.2];
 	ax(i).YLim = [y_range(1)*.8 y_range(2)*1.2];
 	ax(i).XTick = [1e-3 1e-2 1e-1];
@@ -314,16 +316,20 @@ end
 
 
 
-ch_f.Position = [.3 .6 .01 .1];
-ch_Ca.Position = [.62 .12 .01 .1];
+ch_f.Position = [.3 .45 .01 .1];
+ch_Ca.Position = [.32 .12 .01 .1];
 
 
 
-I = imread('open_loop.png');
+I = imread('images/open_loop.png');
 figlib.showImageInAxes(ax(2),I)
 
-I = imread('closed_loop.png');
-figlib.showImageInAxes(ax(4),I)
+I = imread('images/closed_loop.png');
+figlib.showImageInAxes(ax(5),I)
 
 
-figlib.label('x_offset',.01,'font_size',28)
+I = imread('images/cartoon.png');
+figlib.showImageInAxes(ax_hero,I)
+
+
+figlib.label('XOffset',.01,'FontSize',28)
