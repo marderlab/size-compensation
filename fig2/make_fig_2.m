@@ -157,7 +157,7 @@ for i = 1:N
 	end
 
 	for j = 1:N
-		plotlib.trajectory(ax.flow,plot_data(j).X,plot_data(j).Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'norm_x',false,'norm_y',false,'n_arrows',1);
+		plotlib.trajectory(ax.flow,plot_data(j).X,plot_data(j).Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'NormX',false,'NormY',false,'NArrows',1);
 		
 	end
 	drawnow
@@ -304,11 +304,11 @@ xlabel(ax.flow,'$\mathrm{\Sigma \bar{g}_{Ca} (\mu S/mm^2)}$','interpreter','late
 figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',19)
 
 
-axlib.label(ax.example(1),'b','y_offset',.03,'font_size',26,'x_offset',-.04);
-axlib.label(ax.noreg,'c','y_offset',-.03,'font_size',26,'x_offset',-.02);
-axlib.label(ax.flow,'d','y_offset',-.03,'font_size',26,'x_offset',-.02);
-axlib.label(ax.diff,'e','y_offset',-.03,'font_size',26,'x_offset',-.02);
-axlib.label(ax.cartoon,'a','y_offset',-.03,'font_size',26,'x_offset',-0);
+axlib.label(ax.example(1),'b','YOffset',.03,'FontSize',26,'XOffset',-.04);
+axlib.label(ax.noreg,'c','YOffset',-.03,'FontSize',26,'XOffset',-.02);
+axlib.label(ax.flow,'d','YOffset',-.03,'FontSize',26,'XOffset',-.02);
+axlib.label(ax.diff,'e','YOffset',-.03,'FontSize',26,'XOffset',-.02);
+axlib.label(ax.cartoon,'a','YOffset',-.03,'FontSize',26,'XOffset',-0);
 
 ax.cartoon.Position = [.08 .55 .35 .35];
 
