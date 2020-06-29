@@ -4,10 +4,19 @@
 % The point of this figure is to show that activity-dependent feedback regulation on the conductances is useful, in that you don't need to fine-tune the growth rate. In fact, it works for any growth rate. 
 
 
+
 addpath('./src/')
 
 clearvars
 close all
+
+try
+	data_loc = getpref('size_comp','data');
+catch
+	error('Tell this script where the data is using setpref>size_comp>data/')
+end
+
+
 
 x = xolotl;
 x.add('compartment','AB','A',0.0628,'vol',.0628);
@@ -94,7 +103,7 @@ else
 	x.sim_dt = .1;
 	x.t_end = 10e3;
 	x.closed_loop = true;
-
+	x.integrate;
 
 	parfor i = 1:gridsize
 		disp(i)
@@ -321,14 +330,14 @@ ch_Ca.Position = [.32 .12 .01 .1];
 
 
 
-I = imread('images/open_loop.png');
+I = imread(fullfile(data_loc,'images','open_loop.png'));
 figlib.showImageInAxes(ax(2),I)
 
-I = imread('images/closed_loop.png');
+I = imread(fullfile(data_loc,'images','closed_loop.png'));
 figlib.showImageInAxes(ax(5),I)
 
 
-I = imread('images/cartoon.png');
+I = imread(fullfile(data_loc,'images','cartoon.png'));
 figlib.showImageInAxes(ax_hero,I)
 
 

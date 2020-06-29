@@ -12,27 +12,37 @@ Assuming you use git, install the required code and dependencies using:
 
 ```bash
 # this repo
+# tested with git hash 3c7f434ed7ae4666c760abafa25670a211843ee7
 git clone https://github.com/marderlab/size-compensation
 
 # the neuron simulator this uses
-git clone https://github.com/sg-s/xolotl
+git clone https://github.com/sg-s/xolotl 
 
 # dependencies 
+# tested with git hash e1c7450bd51256c04b415d9b422236ee313c8288
 git clone https://github.com/sg-s/srinivas.gs_mtools
+
+
+
 git clone https://github.com/sg-s/cpplab
 ```
 
 ## Reproducing figures in the paper
 
-In your MATLAB prompt, simply run the appropriate script to make the figure as you see it in the paper. For example, running
+You will first have to download some data, available [here](https://github.com/marderlab/size-compensation/releases) and tell MATLAB where the data is using:
 
 ```
-make_fig_1
+setpref('size_comp','data','/link/to/where/you/downloaded/data')
 ```
 
-in the `fig1` folder will generate this: 
+Then, in your MATLAB prompt, simply run the appropriate script to make the figure as you see it in the paper. For example, running
 
-![](https://user-images.githubusercontent.com/6005346/64710385-dae9b900-d485-11e9-9bb5-ac2f6db9ceff.png)
+```
+fig1.make
+```
+will make
+
+![](https://user-images.githubusercontent.com/6005346/86020389-dc28aa00-b9f5-11ea-8cd1-9cbfb262fdcb.png)
 
 
 This project uses the [xolotl](https://go.brandeis.edu/xolotl) neuron and network simulator, which is freely available for you to use. 

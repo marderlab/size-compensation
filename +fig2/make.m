@@ -6,10 +6,19 @@
 close all
 clearvars
 
+try
+	data_loc = getpref('size_comp','data');
+catch
+	error('Tell this script where the data is using setpref>size_comp>data/')
+end
+
+
+
+
 % get lots of bursting neuron models with some narrow set of parameters
 
-if exist('bursting_neurons.mat','file') == 2
-	load('bursting_neurons.mat','all_g')
+if exist(fullfile(data_loc,'bursting_neurons.mat'),'file') == 2
+	load(fullfile(data_loc,'bursting_neurons.mat'),'all_g')
 else
 
 	n = neuroDB;
@@ -44,11 +53,13 @@ all_Ca = NaN(n_models,length(scale_factor));
 all_burst_periods = NaN(n_models,length(scale_factor));
 all_duty_cycles = NaN(n_models,length(scale_factor));
 
-x = xolotl.examples.BurstingNeuron();
+x = xolotl.examples.neurons.BurstingNeuron();
 x.t_end = 10e3;
 
-if exist('bursting_neurons_all_Ca.mat','file') == 2
-	load('bursting_neurons_all_Ca.mat','all_Ca','all_burst_periods','all_duty_cycles')
+x.integrate;
+
+if exist(fullfile(data_loc,'bursting_neurons_all_Ca.mat'),'file') == 2
+	load(fullfile(data_loc,'bursting_neurons_all_Ca.mat'),'all_Ca','all_burst_periods','all_duty_cycles')
 else
 
 	for i = 1:n_models
@@ -253,7 +264,7 @@ for i = 1:9
 end
 
 
-figlib.label('x_offset',.01,'font_size',28)
+figlib.label('XOffset',.01,'FontSize',28)
 
 
 

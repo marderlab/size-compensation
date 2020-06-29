@@ -1,6 +1,13 @@
 
 close all
-addpath('../')
+
+
+try
+	data_loc = getpref('size_comp','data');
+catch
+	error('Tell this script where the data is using setpref>size_comp>data/')
+end
+
 
 figure('outerposition',[300 300 900 701],'PaperUnits','points','PaperSize',[900 701]); hold on
 clear ax
@@ -33,8 +40,8 @@ y0 = sum(g0([1 4 5 6 8]));
 x_range = [900 x0*10];
 y_range = [y0/100 x0*10];
 
-if exist('zeros_in_Ca.mat','file') == 2
-	load('zeros_in_Ca.mat','all_g_Ca','zero_locs')
+if exist(fullfile(data_loc,'zeros_in_Ca.mat'),'file') == 2
+	load(fullfile(data_loc,'zeros_in_Ca.mat'),'all_g_Ca','zero_locs')
 else
 	
 	all_g_Ca = corelib.logrange(x_range(1),x_range(2),1e3);
@@ -49,7 +56,7 @@ else
 
 	end
 
-	save('zeros_in_Ca.mat','all_g_Ca','zero_locs')
+	save(fullfile(data_loc,'zeros_in_Ca.mat'),'all_g_Ca','zero_locs')
 
 end
 
@@ -68,11 +75,11 @@ Ca_zeros.all_g_Ca = all_g_Ca;
 
 
 
-if exist('smallest_v_dot.mat','file') == 2
-	load('smallest_v_dot.mat','smallest_v_dot')
+if exist(fullfile(data_loc,'smallest_v_dot.mat'),'file') == 2
+	load(fullfile(data_loc,'smallest_v_dot.mat'),'smallest_v_dot')
 else
 	smallest_v_dot = analytical.findSmallestVdotInGrid(g0, x_range, y_range, Ca_zeros, Ca_target, 1e3, 5e3);
-	save('smallest_v_dot.mat','smallest_v_dot');
+	save(fullfile(data_loc,'smallest_v_dot.mat'),'smallest_v_dot');
 end
 
 all_y = corelib.logrange(y_range(1),y_range(2),5e3);
@@ -98,7 +105,7 @@ all_y(rm_this) = [];
 model_hash = '0dea7e804b9255ac7bba7df3c3b015ff';
 
 
-load(['../fig2/' model_hash '_1.voronoi'],'-mat')
+load(fullfile(data_loc,[model_hash '_1.voronoi']),'-mat')
 
 v.plotBoundaries(ax(2))
 set(ax(2),'XScale','log','YScale','log')
@@ -115,7 +122,7 @@ end
 
 % plot equi-calcium line
 
-load(['../fig2/' model_hash '_calcium.voronoi'],'-mat')
+load(fullfile(data_loc,[model_hash '_calcium.voronoi']),'-mat')
 
 X = v.boundaries(1).regions.x;
 Y = v.boundaries(1).regions.y;
@@ -231,9 +238,9 @@ ylabel(ax(3),'$V_m (mV)$','interpreter','latex')
 
 
 
-if exist('bifurcation_data.mat','file') == 2
+if exist(fullfile(data_loc,'bifurcation_data.mat'),'file') == 2
 
-	load('bifurcation_data.mat','show_at_these_y','all_V','all_spiketimes')
+	load(fullfile(data_loc,'bifurcation_data.mat'),'show_at_these_y','all_V','all_spiketimes')
 else
 	show_at_these_y = corelib.logrange(min(all_y),max(all_y),1e3);
 
@@ -268,7 +275,7 @@ else
 
 	end
 
-	save('bifurcation_data.mat','show_at_these_y','all_V','all_spiketimes')
+	save(fullfile(data_loc,'bifurcation_data.mat'),'show_at_these_y','all_V','all_spiketimes')
 
 end
 
@@ -282,4 +289,4 @@ set(ax(4),'YScale','linear','XLim',[min(show_at_these_y) max(show_at_these_y)])
 
 set(ax(4),'XScale','log','XLim',[min(all_y),max(all_y)])
 ax(4).XTick = [100 1e3];
-figlib.label('x_offset',-.03,'y_offset',-.02,'font_size',24)
+figlib.label('XOffset',-.03,'YOffset',-.02,'FontSize',24)

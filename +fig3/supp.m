@@ -36,7 +36,7 @@ time = (1:length(V))*1e-3*x.dt;
 plot(ax.spiking_V,time,V,'k')
 set(ax.spiking_V,'XLim',[0 1])
 
-
+x.pref.use_polar_gbar = false;
 x.plotgbars(ax.spiking_g,'AB')
 
 for i = 1:length(x.handles.gbar_plot)
@@ -54,7 +54,7 @@ load([model_hash '_calcium.voronoi'],'v','-mat')
 
 
 
-% measure behaviour in a grid using xgrid
+% measure behaviour in a grid 
 % we will encode behaviour using colours 
 
 

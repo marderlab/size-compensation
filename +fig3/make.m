@@ -6,11 +6,15 @@ addpath('../')
 
 model_hash = '0dea7e804b9255ac7bba7df3c3b015ff';
 
+try
+	data_loc = getpref('size_comp','data');
+catch
+	error('Tell this script where the data is using setpref>size_comp>data/')
+end
+
 
 % show model without regulation 
-
-
-load([model_hash '_0.voronoi'],'-mat')
+load(fullfile(data_loc, [model_hash '_0.voronoi']),'-mat')
 
 x0 = sum(v.data.g0(2:3));
 y0 = sum(v.data.g0([1 4 5 6 8]));
@@ -22,7 +26,7 @@ ax.diff = subplot(2,3,6); hold on
 ax.cartoon = subplot(2,2,1); hold on
 
 
-I = imread('integral-control.png');
+I = imread(fullfile(data_loc,'images','integral-control.png'));
 figlib.showImageInAxes(ax.cartoon,I)
 
 
@@ -54,7 +58,7 @@ v0 = v;
 
 % plot equi-calcium line
 
-load([ model_hash '_calcium.voronoi'],'-mat')
+load(fullfile(data_loc, [model_hash '_calcium.voronoi']),'-mat')
 
 X = v.boundaries(1).regions.x;
 Y = v.boundaries(1).regions.y;
@@ -65,9 +69,8 @@ plot(ax.flow,X,Y,'r','LineWidth',2)
 set(ax.noreg,'XScale','log','YScale','log','XLim',v.x_range,'YLim',v.y_range)
 
 
-% plot the integral control solutioon
-
-load([model_hash '_1.voronoi'],'-mat')
+% plot the integral control solution
+load(fullfile(data_loc, [model_hash '_1.voronoi']),'-mat')
 
 v.plotBoundaries(ax.flow)
 set(ax.flow,'XScale','log','YScale','log')
