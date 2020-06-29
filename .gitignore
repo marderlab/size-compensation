@@ -16,3 +16,4 @@ images/
 *.aux
 *.out
 *.start
+*.voronoi

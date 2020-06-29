@@ -4,6 +4,13 @@
 
 function status = findCalciumNullcline(x, gbar_x, gbar_y)
 
+try
+	data_loc = getpref('size_comp','data');
+catch
+	error('Tell this script where the data is using setpref>size_comp>data/')
+end
+
+
 status = 1;
 
 if nargin == 1
@@ -22,7 +29,7 @@ save_name = hashlib.md5hash([gbar(:); gbar_x(:); gbar_y(:)]);
 
 disp(['Saving using: ' save_name])
 
-if exist([save_name '_calcium.voronoi'],'file')
+if exist(fullfile(data_loc,[save_name '_calcium.voronoi']),'file')
 	disp('Already done, skipping...')
 	status = 0;
 	return
@@ -30,8 +37,6 @@ end
 
 x.reset;
 
-% write to disk just so we know where it's writing
-save([save_name '.start'],'status')
 
 
 disp('==========================================')
@@ -46,7 +51,7 @@ data.metrics_base = singleCompartment.measureBaselineMetrics(x);
 if data.metrics_base.firing_rate == 0
 	disp('Bad model, skipping...')
 	delete([save_name '.start'])
-	save([save_name '.bad_model'],'status')
+	save(fullfile(data_loc,[save_name '.bad_model']),'status')
 	return
 end
 
@@ -80,9 +85,7 @@ v.max_fun_eval = 200;
 x0 = logspace(-.9,.4,10)*x0;
 y0 = logspace(-.9,.4,10)*y0;
 
-singleCompartment.perturb.segmentAndSave(v, x0, y0, [save_name '_calcium.voronoi']);
+singleCompartment.perturb.segmentAndSave(v, x0, y0, fullfile(data_loc,[save_name '_calcium.voronoi']));
 
-% clean up the start file
-delete([save_name '.start'])
 
 

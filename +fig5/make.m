@@ -4,6 +4,14 @@ clear ax
 addpath('../')
 close all
 
+
+try
+	data_loc = getpref('size_comp','data');
+catch
+	error('Tell this script where the data is using setpref>size_comp>data/')
+end
+
+
 figure('outerposition',[300 300 800 801],'PaperUnits','points','PaperSize',[800 801]); hold on
 for i = 4:-1:1
 	ax(i) = subplot(2,2,i); hold on
@@ -24,7 +32,7 @@ axis(ax(4),'square')
 g0 = [379 165 2.35 .72 297 1713 .46 1370];
 
 % control -- integral controller
-x = singleCompartment.makeNeuron('controller_type','IntegralController');
+x = singleCompartment.makeNeuron('controller_type','oleary/IntegralController');
 x.set('*gbar',g0)
 x.reset
 x.integrate;
@@ -65,9 +73,9 @@ all_gbar = abs(all_gbar);
 all_gbar(:,7) = g0(7);
 all_gbar = all_gbar';
 
-if exist('generalized_perturbations.mat','file') == 2
+if exist(fullfile(data_loc,'generalized_perturbations.mat'),'file') == 2
 
-	load('generalized_perturbations.mat','data','params')
+	load(fullfile(data_loc,'generalized_perturbations.mat'),'data','params')
 else
 
 	p = xgrid;
@@ -89,7 +97,7 @@ else
 	[data, params] = p.gather;
 
 
-	save('generalized_perturbations.mat','data','params')
+	save(fullfile(data_loc,'generalized_perturbations.mat'),'data','params')
 end
 
 metrics = data{1};
@@ -143,7 +151,7 @@ ch.Position = [.2 .28 .018 .14];
 % now we show calcium nullclines for a whole bunch of very similar neurons
 % but with different properties in the standard projection
 
-allfiles = dir('./perturb-similar-bursters/*calcium.voronoi');
+allfiles = dir(fullfile(data_loc,'perturb-similar-bursters','*calcium.voronoi'));
 alldata = singleCompartment.perturb.consolidateCalciumNullclines(allfiles);
 
 
@@ -182,7 +190,7 @@ status = singleCompartment.perturb.findCalciumNullcline(x, gbar_x, gbar_y);
 x.set('*gbar',[379 165 2.35 .72 297 1713 .46 1370])
 gbar = x.get('*gbar');
 save_name = hashlib.md5hash([gbar(:); gbar_x(:); gbar_y(:)]);
-load([save_name '_calcium.voronoi'],'-mat','v')
+load(fullfile(data_loc,[save_name '_calcium.voronoi']),'-mat','v')
 
 X = v.boundaries(1).regions.x;
 Y = v.boundaries(1).regions.y;
@@ -198,7 +206,7 @@ status = singleCompartment.perturb.analyzeWithControl(x, gbar_x, gbar_y);
 x.set('*gbar',[379 165 2.35 .72 297 1713 .46 1370])
 gbar = x.get('*gbar');
 save_name = hashlib.md5hash([x.hash hashlib.md5hash([gbar_x(:); gbar_y(:)])]);
-load([save_name '_1.voronoi'],'-mat','v')
+load(fullfile(data_loc,[save_name '_1.voronoi']),'-mat','v')
 v.plotBoundaries(ax(1))
 axlib.resolveOverlappingPolyShapes(ax(1))
 
@@ -249,6 +257,8 @@ for i = 1:N
 	plot_data.X = [];
 	plot_data.Y = [];
 
+	x.integrate;
+
 	parfor j = 1:N
 
 		g = singleCompartment.perturb.scaleG(v.data.g0,all_x(i),all_y(j),gbar_x,gbar_y);
@@ -269,7 +279,7 @@ for i = 1:N
 	end
 
 	for j = 1:N
-		plotlib.trajectory(ax(1),plot_data(j).X,plot_data(j).Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'norm_x',false,'norm_y',false,'n_arrows',1);
+		plotlib.trajectory(ax(1),plot_data(j).X,plot_data(j).Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'NormX',false,'NormY',false,'NArrows',1);
 		
 	end
 	drawnow
@@ -303,7 +313,7 @@ status = singleCompartment.perturb.findCalciumNullcline(x, gbar_x, gbar_y);
 x.set('*gbar',[379 165 2.35 .72 297 1713 .46 1370])
 gbar = x.get('*gbar');
 save_name = hashlib.md5hash([gbar(:); gbar_x(:); gbar_y(:)]);
-load([save_name '_calcium.voronoi'],'-mat','v')
+load(fullfile(data_loc,[save_name '_calcium.voronoi']),'-mat','v')
 
 
 X = v.boundaries(1).regions.x;
@@ -320,7 +330,7 @@ status = singleCompartment.perturb.analyzeWithControl(x, gbar_x, gbar_y);
 x.set('*gbar',[379 165 2.35 .72 297 1713 .46 1370])
 gbar = x.get('*gbar');
 save_name = hashlib.md5hash([x.hash hashlib.md5hash([gbar_x(:); gbar_y(:)])]);
-load([save_name '_1.voronoi'],'-mat','v')
+load(fullfile(data_loc,[save_name '_1.voronoi']),'-mat','v')
 v.plotBoundaries(ax(2))
 axlib.resolveOverlappingPolyShapes(ax(2))
 
@@ -390,7 +400,7 @@ for i = 1:N
 	end
 
 	for j = 1:N
-		plotlib.trajectory(ax(2),plot_data(j).X,plot_data(j).Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'norm_x',false,'norm_y',false,'n_arrows',1);
+		plotlib.trajectory(ax(2),plot_data(j).X,plot_data(j).Y,'Color',this_color,'ArrowLength',.015,'LineWidth',1,'NormX',false,'NormY',false,'NArrows',1);
 		
 	end
 	drawnow
@@ -425,10 +435,10 @@ figlib.pretty('PlotLineWidth',1,'LineWidth',1,'FontSize',15)
 
 
 
-axlib.label(ax(1),'a','x_offset',-.05,'y_offset',0,'font_size',24);
-axlib.label(ax(2),'b','x_offset',-.05,'y_offset',0,'font_size',24);
-axlib.label(ax(3),'c','x_offset',-.05,'y_offset',0,'font_size',24);
-axlib.label(ax(4),'d','x_offset',-.05,'y_offset',0,'font_size',24);
+axlib.label(ax(1),'a','XOffset',-.05,'YOffset',0,'FontSize',24);
+axlib.label(ax(2),'b','XOffset',-.05,'YOffset',0,'FontSize',24);
+axlib.label(ax(3),'c','XOffset',-.05,'YOffset',0,'FontSize',24);
+axlib.label(ax(4),'d','XOffset',-.05,'YOffset',0,'FontSize',24);
 
 ax(3).YLim = [600 1500];
 

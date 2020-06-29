@@ -5,13 +5,19 @@ function status = analyzeWithControl(x, gbar_x, gbar_y)
 
 status = 1;
 
+try
+	data_loc = getpref('size_comp','data');
+catch
+	error('Tell this script where the data is using setpref>size_comp>data/')
+end
+
 
 gbar = x.get('*gbar');
 %save_name = hashlib.md5hash([gbar(:); gbar_x(:); gbar_y(:)]);
 
 save_name = hashlib.md5hash([x.hash hashlib.md5hash([gbar_x(:); gbar_y(:)])]);
 
-if exist([save_name '_1.voronoi'],'file')
+if exist(fullfile(data_loc,[save_name '_1.voronoi']),'file')
 	disp('Already done, skipping...')
 	status = 0;
 	return
@@ -56,7 +62,7 @@ v.max_fun_eval = 400;
 
 x0 = logspace(-.9,0,10)*x0;
 y0 = logspace(-.9,0,10)*y0;
-singleCompartment.perturb.segmentAndSave(v, x0, y0, [save_name '_1.voronoi']);
+singleCompartment.perturb.segmentAndSave(v, x0, y0, fullfile(data_loc,[save_name '_1.voronoi']));
 
 
 % clean up the start file
